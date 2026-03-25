@@ -1,38 +1,86 @@
 const MARGIN = 5;
-let paused = false;
+
+let codeString = "";
+let yPos = 0;
+let scrollSpeed = 2;
+let fontSize = 18;
+let gapLine = 25;
+
+function preload() {
+  rawTextCode = loadStrings("code.txt");
+}
 
 function setup() {
-  colorMode(HSB);
   let canvasWidth = windowWidth - 2 * MARGIN;
   let canvasHeight = windowHeight - 2 * MARGIN;
   createCanvas(canvasWidth, canvasHeight);
+
+  if (rawTextCode) codeString = rawTextCode.join("").replace(/\s+/g, ""); // Remove all whitespace
+
+  colorMode(HSB);
+  textFont("Courier");
+  textSize(fontSize);
+  textLeading(gapLine);
+  textAlign(LEFT);
+  calculateCharacterWrap();
 }
 
 function windowResized() {
   let canvasWidth = windowWidth - 2 * MARGIN;
   let canvasHeight = windowHeight - 2 * MARGIN;
   resizeCanvas(canvasWidth, canvasHeight);
+  calculateCharacterWrap();
+}
+
+function calculateCharacterWrap() {
+  wrappedLines = [];
+  let currentLine = "";
+
+  for (let i = 0; i < codeString.length; i++) {
+    let char = codeString[i];
+    let testLine = currentLine + char;
+
+    // If adding this character exceeds the width, start a new line
+    if (textWidth(testLine) > width) {
+      wrappedLines.push(currentLine);
+      currentLine = char;
+    } else {
+      currentLine = testLine;
+    }
+  }
+
+  // Add any remaining characters as the last line
+  if (currentLine.length > 0) {
+    let charIndex = 0;
+    // Keep adding characters from the start of the code until the line is full
+    while (textWidth(currentLine + codeString[charIndex % codeString.length]) <= width) {
+      currentLine += codeString[charIndex % codeString.length];
+      charIndex++;
+    }
+    wrappedLines.push(currentLine);
+  }
+
+  textBlockHeight = wrappedLines.length * gapLine;
 }
 
 function draw() {
-  // Background gradient
   background(0);
-  let darkblue = color(240, 100, 20);
-  let marineblue = color(240, 100, 40);
-  let lightblue = color(200, 100, 60);
+  fill(140, 255, 170);
 
-  for (let i = 0; i < height; i++) {
-    let mergeColor = lerpColor(darkblue, marineblue, i / height);
-    mergeColor = lerpColor(mergeColor, lightblue, i / height);
-    stroke(mergeColor);
-    line(0, i, width, i);
-  }
-}
+  yPos -= scrollSpeed;
+  if (yPos <= -textBlockHeight) yPos = 0; // Reset to the top once the entire block has scrolled through
 
-function keyPressed() {
-  switch (keyCode) {
-    case 32: // Space key
-      paused = !paused;
-      break;
+  // Draw the text block many times
+  let startY = yPos;
+  while (startY < height) {
+    for (let i = 0; i < wrappedLines.length; i++) {
+      let lineY = startY + i * gapLine;
+
+      // Only draw lines that are actually visible on screen
+      if (lineY + gapLine > 0 && lineY < height + gapLine) {
+        text(wrappedLines[i], 0, lineY);
+      }
+    }
+    startY += textBlockHeight;
   }
 }
