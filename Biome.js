@@ -1,8 +1,7 @@
 class Biome {
-  static startOverlapHeight = 0; // Extra overlap height above the biome that extends over the previous biome that isn't counted in the biome height. Should be overridden by subclasses.
-
   worldStartHeight; // World height where the biome starts, not including the start overlap
   biomeHeight; // Total biome height, including the start and end sections, but not including the start overlap
+  startOverlapHeight; // Extra overlap height above the biome that extends over the previous biome that isn't counted in the biome height
   startHeight; // Start section height, not including the overlap
   endHeight; // End section height
   gravity; // Biome-specific gravity affecting the player's speed

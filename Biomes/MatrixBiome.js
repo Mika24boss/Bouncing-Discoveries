@@ -1,5 +1,4 @@
 class MatrixBiome extends Biome {
-  static startOverlapHeight = 50;
   static codeString = "";
 
   fontSize = 18;
@@ -9,7 +8,7 @@ class MatrixBiome extends Biome {
     super(
       worldStartHeight,
       10000, // biomeHeight
-      MatrixBiome.startOverlapHeight,
+      50, // startOverlapHeight
       200, // startHeight
       200, // endHeight
       0.5, // gravity
@@ -81,7 +80,7 @@ class MatrixBiome extends Biome {
     } else {
       const endTopY = topY + this.biomeHeight - this.endHeight;
       vertex(0, endTopY);
-      vertex(width, endTopY + 50);
+      vertex(width, endTopY + sectionHeight);
       vertex(width, endTopY + sectionHeight);
       vertex(0, endTopY + sectionHeight);
     }

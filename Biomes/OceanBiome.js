@@ -1,11 +1,9 @@
 class OceanBiome extends Biome {
-  static startOverlapHeight = 50;
-
   constructor(worldStartHeight) {
     super(
       worldStartHeight,
       10000, // biomeHeight
-      OceanBiome.startOverlapHeight,
+      50, // startOverlapHeight
       200, // startHeight
       200, // endHeight
       0.5, // gravity
@@ -14,5 +12,11 @@ class OceanBiome extends Biome {
   }
 
   drawBall(screenX, screenY, radius) {
+    push();
+    fill(180, 100, 100);
+    stroke(255);
+    strokeWeight(2);
+    circle(screenX, screenY, radius * 2);
+    pop();
   }
 }

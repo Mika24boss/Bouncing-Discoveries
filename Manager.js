@@ -4,13 +4,11 @@ class Manager {
   lerpSpeed = 0.1; // Adjust smoothing factor for camera movement
 
   constructor() {
-    const biomes = [MatrixBiome, SpaceBiome];
-    let currentWorldY = biomes[0].startOverlapHeight; // Add the first biome's overlap since it is subtracted in the loop for all biomes
+    const biomes = [MatrixBiome, AbstractBiome];
+    let currentWorldY = 0;
 
     for (let BiomeClass of biomes) {
-      currentWorldY -= BiomeClass.startOverlapHeight; // Adjust for the start overlap
       this.biomes.push(new BiomeClass(currentWorldY));
-
       currentWorldY += this.biomes[this.biomes.length - 1].biomeHeight;
     }
 
