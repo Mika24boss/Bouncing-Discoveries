@@ -1,10 +1,7 @@
-const MARGIN = 5;
+const ASPECT_RATIO = 0.7; // Smaller aspect ratio for a skinnier canvas
+let paused = false;
+let manager;
 
-let codeString = "";
-let yPos = 0;
-let scrollSpeed = 2;
-let fontSize = 18;
-let gapLine = 25;
 let rawTextCode;
 
 function preload() {
@@ -12,77 +9,38 @@ function preload() {
 }
 
 function setup() {
-  let canvasWidth = windowWidth - 2 * MARGIN;
-  let canvasHeight = windowHeight - 2 * MARGIN;
+  colorMode(HSB);
+  let canvasHeight = windowHeight;
+  let canvasWidth = canvasHeight * ASPECT_RATIO;
+  canvasWidth = min(canvasWidth, windowWidth);
   createCanvas(canvasWidth, canvasHeight);
 
-  if (rawTextCode) codeString = rawTextCode.join("").replace(/\s+/g, ""); // Remove all whitespace
-
-  colorMode(HSB);
-  textFont("Courier");
-  textSize(fontSize);
-  textStyle(BOLD);
-  textLeading(gapLine);
-  textAlign(LEFT);
-  calculateCharacterWrap();
-}
-
-function windowResized() {
-  let canvasWidth = windowWidth - 2 * MARGIN;
-  let canvasHeight = windowHeight - 2 * MARGIN;
-  resizeCanvas(canvasWidth, canvasHeight);
-  calculateCharacterWrap();
-}
-
-function calculateCharacterWrap() {
-  wrappedLines = [];
-  let currentLine = "";
-
-  for (let i = 0; i < codeString.length; i++) {
-    let char = codeString[i];
-    let testLine = currentLine + char;
-
-    // If adding this character exceeds the width, start a new line
-    if (textWidth(testLine) > width) {
-      wrappedLines.push(currentLine);
-      currentLine = char;
-    } else {
-      currentLine = testLine;
-    }
-  }
-
-  // Add any remaining characters as the last line
-  if (currentLine.length > 0) {
-    let charIndex = 0;
-    // Keep adding characters from the start of the code until the line is full
-    while (textWidth(currentLine + codeString[charIndex % codeString.length]) <= width) {
-      currentLine += codeString[charIndex % codeString.length];
-      charIndex++;
-    }
-    wrappedLines.push(currentLine);
-  }
-
-  textBlockHeight = wrappedLines.length * gapLine;
+  // Inject processed matrix text into the class so it can access it
+  MatrixBiome.codeString = rawTextCode.join("").replace(/\s+/g, ""); // Remove all whitespace
+  
+  manager = new Manager();
 }
 
 function draw() {
+  if (paused) return;
   background(0);
-  fill(140, 255, 170);
+  manager.drawScene();
+}
 
-  yPos -= scrollSpeed;
-  if (yPos <= -textBlockHeight) yPos = 0; // Reset to the top once the entire block has scrolled through
-
-  // Draw the text block many times
-  let startY = yPos;
-  while (startY < height) {
-    for (let i = 0; i < wrappedLines.length; i++) {
-      let lineY = startY + i * gapLine;
-
-      // Only draw lines that are actually visible on screen
-      if (lineY + gapLine > 0 && lineY < height + gapLine) {
-        text(wrappedLines[i], 0, lineY);
-      }
-    }
-    startY += textBlockHeight;
+function keyPressed() {
+  let force = 30;
+  switch (keyCode) {
+    case 32: // Space key
+      paused = !paused;
+      break;
+    case UP_ARROW:
+      manager.pushBall(0, -force);
+      break;
+    case RIGHT_ARROW:
+      manager.pushBall(force, 0);
+      break;
+    case LEFT_ARROW:
+      manager.pushBall(-force, 0);
+      break;
   }
 }
