@@ -5,6 +5,7 @@ let yPos = 0;
 let scrollSpeed = 2;
 let fontSize = 18;
 let gapLine = 25;
+let rawTextCode;
 
 function preload() {
   rawTextCode = loadStrings("code.txt");
@@ -20,6 +21,7 @@ function setup() {
   colorMode(HSB);
   textFont("Courier");
   textSize(fontSize);
+  textStyle(BOLD);
   textLeading(gapLine);
   textAlign(LEFT);
   calculateCharacterWrap();
