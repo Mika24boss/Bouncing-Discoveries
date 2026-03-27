@@ -1,5 +1,5 @@
 class Biome {
-  worldStartHeight; // World height where the biome starts, not including the start overlap
+  worldStartY; // World y coordinate where the biome starts, not including the start overlap
   biomeHeight; // Total biome height, including the start and end sections, but not including the start overlap
   startOverlapHeight; // Extra overlap height above the biome that extends over the previous biome that isn't counted in the biome height
   startHeight; // Start section height, not including the overlap
@@ -7,12 +7,12 @@ class Biome {
   gravity; // Biome-specific gravity affecting the player's speed
   maxVelocity; // Biome-specific max velocity for the player
 
-  constructor(worldStartHeight, biomeHeight, startOverlapHeight, startHeight, endHeight, gravity, maxVelocity) {
+  constructor(worldStartY, biomeHeight, startOverlapHeight, startHeight, endHeight, gravity, maxVelocity) {
     if (this.constructor === Biome) {
       throw new Error("Abstract class cannot be instantiated.");
     }
 
-    this.worldStartHeight = worldStartHeight;
+    this.worldStartY = worldStartY;
     this.biomeHeight = biomeHeight;
     this.startOverlapHeight = startOverlapHeight;
     this.startHeight = startHeight;
@@ -22,7 +22,7 @@ class Biome {
   }
 
   drawBackground(cameraWorldY) {
-    const topY = this.worldStartHeight - cameraWorldY;
+    const topY = this.worldStartY - cameraWorldY;
 
     if (!this.isOnScreen(topY)) return;
 
@@ -41,7 +41,7 @@ class Biome {
   }
 
   drawForeground(cameraWorldY) {
-    const topY = this.worldStartHeight - cameraWorldY;
+    const topY = this.worldStartY - cameraWorldY;
 
     if (!this.isOnScreen(topY)) return;
 

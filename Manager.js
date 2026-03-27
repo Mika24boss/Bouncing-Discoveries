@@ -23,8 +23,8 @@ class Manager {
 
       if (
         !currentBiome &&
-        this.ball.worldPosition.y >= biome.worldStartHeight &&
-        this.ball.worldPosition.y <= biome.worldStartHeight + biome.biomeHeight
+        this.ball.worldPosition.y >= biome.worldStartY &&
+        this.ball.worldPosition.y <= biome.worldStartY + biome.biomeHeight
       ) {
         currentBiome = biome;
       }

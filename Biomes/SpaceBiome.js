@@ -1,8 +1,8 @@
 class SpaceBiome extends Biome {
-  constructor(worldStartHeight) {
+  constructor(worldStartY) {
     super(
-      worldStartHeight,
-      10000, // biomeHeight
+      worldStartY,
+      5000, // biomeHeight
       50, // startOverlapHeight
       200, // startHeight
       200, // endHeight
