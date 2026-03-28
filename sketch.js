@@ -23,7 +23,6 @@ function setup() {
 
 function draw() {
   if (paused) return;
-  background(0);
   manager.drawScene();
 }
 

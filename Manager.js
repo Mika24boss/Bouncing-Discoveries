@@ -4,7 +4,7 @@ class Manager {
   lerpSpeed = 0.1; // Adjust smoothing factor for camera movement
 
   constructor() {
-    const biomes = [MatrixBiome, AbstractBiome];
+    const biomes = [SpaceBiome, MatrixBiome, AbstractBiome];
     let currentWorldY = 0;
 
     for (let BiomeClass of biomes) {
