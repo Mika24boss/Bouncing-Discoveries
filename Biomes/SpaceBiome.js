@@ -14,7 +14,7 @@ class SpaceBiome extends Biome {
   constructor(worldStartY) {
     super(
       worldStartY,
-      2000, // biomeHeight
+      1000, // biomeHeight
       50, // startOverlapHeight
       200, // startHeight
       200, // endHeight
@@ -44,7 +44,7 @@ class SpaceBiome extends Biome {
         x: random(-width / 2, width / 2),
         y: random(-(this.biomeHeight - this.startHeight) / 2, (this.biomeHeight - this.startHeight) / 2),
         radius: random(0.35 * width, 0.75 * width),
-        color: p5Color.toString()
+        color: p5Color.toString(),
       });
     }
   }
@@ -61,7 +61,7 @@ class SpaceBiome extends Biome {
 
       let grad = drawingContext.createRadialGradient(n.x, n.y, 0, n.x, n.y, n.radius);
       grad.addColorStop(0, n.color);
-      grad.addColorStop(1, 'rgba(0,0,0,0)');
+      grad.addColorStop(1, "rgba(0,0,0,0)");
 
       drawingContext.fillStyle = grad;
       // Draw the rectangle centered on the nebula's position
@@ -69,7 +69,7 @@ class SpaceBiome extends Biome {
 
       drawingContext.restore();
     }
-    
+
     this.time += 2 * PI * 0.001;
     this.morphTime += 0.005;
 
@@ -102,7 +102,9 @@ class SpaceBiome extends Biome {
 
       let starColor = color(h, s, b);
       stroke(starColor);
-      strokeWeight(map(spiral, 0, this.spirals, 1, 3));
+
+      let minStroke = max(1, width / 500);
+      strokeWeight(map(spiral, 0, this.spirals, minStroke, 4 * minStroke));
 
       // Draw stars for this spiral
       for (let star = 0; star < this.starDensity; star++) {

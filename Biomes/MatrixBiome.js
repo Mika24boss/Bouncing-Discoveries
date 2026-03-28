@@ -36,7 +36,7 @@ class MatrixBiome extends Biome {
     fill(136, 100, 78);
 
     // Draw the text block many times
-    let startY = topY;
+    let startY = topY + this.startHeight;
     while (startY < topY + this.biomeHeight) {
       for (let i = 0; i < this.wrappedLines.length; i++) {
         let lineY = startY + i * this.gapLine;

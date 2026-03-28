@@ -31,6 +31,12 @@ class AbstractBiome extends Biome {
   }
 
   drawBodyBG(topY) {
+    push();
+    fill(240, 80, 100);
+    noStroke();
+    rect(0, topY, width, this.biomeHeight);
+    pop();
+
     // Layer 0
     let scaledTopY = this.scaleTopY(topY, this.parallaxLayers[0]);
     this.shapes[this.parallaxLayers[0].scale]?.forEach((s) => s.draw(topY, scaledTopY));
