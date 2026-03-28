@@ -7,17 +7,18 @@ class SpaceBiome extends Biome {
   spiralSpacing = 0; // Spacing between spiral arms
   ratio = 0; // Ratio for spiral tightness
   angle = 0; // Rotation angle for spirals
-  time = 0; // Time for animation
-  morphTime = 0; // Time for morphing
+  time = 0; // Time for animation. Drives rotation of stars around the galaxy
+  morphTime = 0; // Time for morphing. Drives the shape morphing by affecting the ratio and angle
   nebulae = []; // Array to hold nebula properties
+  cullPadding = 5; // Extra padding for culling stars outside the screen (without padding, some partially visible stars at the edges can be culled)
 
   constructor(worldStartY) {
     super(
       worldStartY,
       1000, // biomeHeight
-      50, // startOverlapHeight
-      200, // startHeight
-      200, // endHeight
+      0, // startOverlapHeight
+      0, // startHeight
+      0, // endHeight
       0.1, // gravity
       1 // maxVelocity
     );
@@ -78,13 +79,19 @@ class SpaceBiome extends Biome {
     noFill();
 
     // Draw spirals
+    let cumulativeAngle = 0;
     for (let spiral = 0; spiral < this.spirals; spiral++) {
-      rotate(this.angle);
+      cumulativeAngle += this.angle;
+      let cosAngle = cos(cumulativeAngle);
+      let sinAngle = sin(cumulativeAngle);
 
       if (this.showOrbits) {
+        push();
+        rotate(cumulativeAngle);
         stroke(255, 50);
         strokeWeight(0.4);
         ellipse(0, 0, this.ratio * this.spiralSpacing * spiral, this.spiralSpacing * spiral);
+        pop();
       }
 
       let distFraction = spiral / this.spirals;
@@ -111,7 +118,29 @@ class SpaceBiome extends Biome {
         let starAngle = this.stars[spiral * this.starDensity + star] + this.time;
         let x = (this.ratio * this.spiralSpacing * spiral * cos(starAngle)) / 2;
         let y = (this.spiralSpacing * spiral * sin(starAngle)) / 2;
-        point(x, y);
+
+        // Rotate by the cumulative angle
+        let localX = x * cosAngle - y * sinAngle;
+        let localY = x * sinAngle + y * cosAngle;
+        let screenY = localY + (this.biomeHeight / 2 + topY);
+
+        // Skip if the star isn't on screen
+        if (
+          localX < -width / 2 - this.cullPadding ||
+          localX > width / 2 + this.cullPadding ||
+          screenY < -this.cullPadding ||
+          screenY > height + this.cullPadding
+        )
+          continue;
+
+        // Skip if the start isn't in the biome's range
+        if (
+          localY < -this.biomeHeight / 2 + this.startHeight - this.cullPadding ||
+          localY > this.biomeHeight / 2 - this.endHeight + this.cullPadding
+        )
+          continue;
+
+        point(localX, localY);
       }
     }
     pop();
