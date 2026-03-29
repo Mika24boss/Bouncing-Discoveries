@@ -2,6 +2,7 @@ class Manager {
   biomes = [];
   cameraWorldY = 0;
   lerpSpeed = 0.1; // Adjust smoothing factor for camera movement
+  currentBiome = null;
 
   constructor() {
     const biomes = [SpaceBiome, MatrixBiome, AbstractBiome];
@@ -16,26 +17,29 @@ class Manager {
     this.ball = new Ball(width / 2, height / 3, this.totalWorldHeight);
   }
 
+  update() {
+    this.currentBiome = null;
+    for (let biome of this.biomes) {
+      biome.update();
+
+      if (!this.currentBiome && this.ball.worldPosition.y <= biome.worldStartY + biome.biomeHeight) {
+        this.currentBiome = biome;
+      }
+    }
+
+    this.ball.update(this.currentBiome.gravity, this.currentBiome.maxVelocity);
+    this.ball.checkWorldEdges();
+  }
+
   drawScene() {
     // Background
-    let currentBiome = null;
     for (let biome of this.biomes) {
       biome.drawBackground(this.cameraWorldY);
-
-      if (
-        !currentBiome &&
-        this.ball.worldPosition.y >= biome.worldStartY &&
-        this.ball.worldPosition.y <= biome.worldStartY + biome.biomeHeight
-      ) {
-        currentBiome = biome;
-      }
     }
 
     // Ball
     let ballScreenY = this.ball.worldPosition.y - this.cameraWorldY;
-    this.ball.update(currentBiome.gravity, currentBiome.maxVelocity);
-    this.ball.checkWorldEdges();
-    currentBiome.drawBall(this.ball.worldPosition.x, ballScreenY, this.ball.radius);
+    this.currentBiome.drawBall(this.ball.worldPosition.x, ballScreenY, this.ball.radius);
 
     // Foreground
     for (let biome of this.biomes) {

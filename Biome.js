@@ -9,7 +9,7 @@ class Biome {
 
   constructor(worldStartY, biomeHeight, startOverlapHeight, startHeight, endHeight, gravity, maxVelocity) {
     if (this.constructor === Biome) {
-      throw new Error("Abstract class cannot be instantiated.");
+      throw new Error("Abstract class 'Biome' cannot be instantiated.");
     }
 
     this.worldStartY = worldStartY;
@@ -63,6 +63,7 @@ class Biome {
     return topY - this.startOverlapHeight <= height && topY + this.biomeHeight >= 0;
   }
 
+  update() {}
   drawBodyBG(topY) {}
   drawBodyFG(topY) {}
   drawStartBG(topY) {}
@@ -70,6 +71,6 @@ class Biome {
   drawEndBG(topY) {}
   drawEndFG(topY) {}
   drawBall(screenX, screenY, radius) {
-    throw new Error("'drawBall' method not implemented!");
+    throw new Error("'drawBall' method isn't implemented.");
   }
 }

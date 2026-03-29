@@ -23,6 +23,7 @@ function setup() {
 
 function draw() {
   if (paused) return;
+  manager.update();
   manager.drawScene();
 }
 
