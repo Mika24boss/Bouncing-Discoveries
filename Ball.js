@@ -1,9 +1,10 @@
 class Ball {
-  constructor(x, y) {
+  constructor(x, y, totalWorldHeight) {
     this.worldPosition = createVector(x, y);
     this.velocity = createVector(0, 0);
     this.radius = 40;
     this.currentRenderer = null;
+    this.totalWorldHeight = totalWorldHeight;
   }
 
   update(gravity, maxVelocity) {
@@ -14,5 +15,28 @@ class Ball {
 
   applyForce(x, y) {
     this.velocity.add(createVector(x, y));
+  }
+
+  checkWorldEdges(bounciness = 1) {
+    // Top border
+    if (this.worldPosition.y - this.radius < 0) {
+      this.worldPosition.y = this.radius;
+      this.velocity.y *= -bounciness;
+    }
+    // Bottom border
+    if (this.worldPosition.y + this.radius > this.totalWorldHeight) {
+      this.worldPosition.y = this.totalWorldHeight - this.radius;
+      this.velocity.y *= -bounciness;
+    }
+    // Left edge
+    if (this.worldPosition.x - this.radius < 0) {
+      this.worldPosition.x = this.radius;
+      this.velocity.x *= -bounciness;
+    }
+    // Right edge
+    if (this.worldPosition.x + this.radius > width) {
+      this.worldPosition.x = width - this.radius;
+      this.velocity.x *= -bounciness;
+    }
   }
 }

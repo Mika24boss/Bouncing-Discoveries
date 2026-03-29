@@ -11,8 +11,9 @@ class Manager {
       this.biomes.push(new BiomeClass(currentWorldY));
       currentWorldY += this.biomes[this.biomes.length - 1].biomeHeight;
     }
+    this.totalWorldHeight = currentWorldY;
 
-    this.ball = new Ball(width / 2, height / 3);
+    this.ball = new Ball(width / 2, height / 3, this.totalWorldHeight);
   }
 
   drawScene() {
@@ -33,6 +34,7 @@ class Manager {
     // Ball
     let ballScreenY = this.ball.worldPosition.y - this.cameraWorldY;
     this.ball.update(currentBiome.gravity, currentBiome.maxVelocity);
+    this.ball.checkWorldEdges();
     currentBiome.drawBall(this.ball.worldPosition.x, ballScreenY, this.ball.radius);
 
     // Foreground
@@ -42,6 +44,8 @@ class Manager {
 
     // Update camera
     let targetCameraY = this.ball.worldPosition.y - height / 3;
+    if (targetCameraY < 0) targetCameraY = 0;
+    else if (targetCameraY > this.totalWorldHeight - height) targetCameraY = this.totalWorldHeight - height;
     this.cameraWorldY += (targetCameraY - this.cameraWorldY) * this.lerpSpeed;
   }
 
