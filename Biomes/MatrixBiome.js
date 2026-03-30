@@ -1,5 +1,7 @@
 class MatrixBiome extends Biome {
   static codeString = "";
+  ballEmoji = "";
+  ballEmojis = ["⚪", "🟣", "🔵", "🟢", "🟡", "🟠", "🔴"];
 
   fontSize = 18;
   gapLine = 25;
@@ -12,13 +14,14 @@ class MatrixBiome extends Biome {
       200, // startHeight
       200, // endHeight
       0.5, // gravity
-      10 // maxVelocity
+      2 // maxVelocity
     );
 
     this.codeString = MatrixBiome.codeString;
     let { wrappedLines, textBlockHeight } = this.wrapCharacters();
     this.wrappedLines = wrappedLines;
     this.textBlockHeight = textBlockHeight;
+    this.ballEmoji = random(this.ballEmojis);
   }
 
   drawBodyBG(topY) {
@@ -35,6 +38,15 @@ class MatrixBiome extends Biome {
     textAlign(LEFT);
     fill(136, 100, 78);
 
+    if (frameCount % 3 === 0) {
+      let lineIdx = floor(random(this.wrappedLines.length));
+      let charIdx = floor(random(this.wrappedLines[lineIdx].length));
+      // Replace a character in the string
+      let chars = this.wrappedLines[lineIdx].split('');
+      chars[charIdx] = String.fromCharCode(0x30A0 + random(96)); // Katakana range
+      this.wrappedLines[lineIdx] = chars.join('');
+    }
+
     // Draw the text block many times
     let startY = topY + this.startHeight;
     while (startY < topY + this.biomeHeight) {
@@ -48,6 +60,34 @@ class MatrixBiome extends Biome {
       }
       startY += this.textBlockHeight;
     }
+
+    // Static horizontal lines
+    push();
+    stroke(0, 0, 100, 0.3);
+    strokeWeight(1);
+    for (let y = 0; y < this.biomeHeight; y += 3) {
+      line(0, topY + y, width, topY + y);
+    }
+
+    // Refresh bar
+    noStroke();
+    // Use frameCount to move a bar down the screen
+    let scanlineY = (frameCount * 8) % this.biomeHeight;
+    fill(136, 100, 50, 0.25);
+    rect(0, topY + scanlineY, width, 100);
+
+    // Darker shadow bar right behind it
+    fill(0, 0, 0, 0.1);
+    rect(0, topY + scanlineY - 100, width, 50);
+    pop();
+
+    scanlineY = (frameCount * 8 + this.biomeHeight / 2) % this.biomeHeight;
+    fill(136, 100, 50, 0.25);
+    rect(0, topY + scanlineY, width, 100);
+    fill(0, 0, 0, 0.1);
+    rect(0, topY + scanlineY - 100, width, 50);
+    pop();
+
     pop();
   }
 
@@ -61,10 +101,9 @@ class MatrixBiome extends Biome {
 
   drawBall(screenX, screenY, radius) {
     push();
-    fill(180, 100, 100);
-    stroke(255);
-    strokeWeight(2);
-    circle(screenX, screenY, radius * 2);
+    textSize(radius * 2);
+    textAlign(CENTER, CENTER);
+    text(this.ballEmoji, screenX, screenY + radius / 7);
     pop();
   }
 
@@ -80,7 +119,7 @@ class MatrixBiome extends Biome {
     } else {
       const endTopY = topY + this.biomeHeight - this.endHeight;
       vertex(0, endTopY);
-      vertex(width, endTopY + sectionHeight/2);
+      vertex(width, endTopY + sectionHeight / 2);
       vertex(width, endTopY + sectionHeight);
       vertex(0, endTopY + sectionHeight);
     }
