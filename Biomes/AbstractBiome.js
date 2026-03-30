@@ -1,5 +1,63 @@
 class AbstractBiome extends Biome {
-  parallaxLayers = [];
+  decorativeStyles = [
+    new RectangleStyle({
+      parallaxScale: 0.4,
+      isBackground: true,
+      color: color(0, 100, 60),
+      minHW: 10,
+      maxHW: 20,
+      minHH: 10,
+      maxHH: 20,
+      density: 0.01,
+    }),
+    new RectangleStyle({
+      parallaxScale: -0.6,
+      isBackground: true,
+      color: color(30, 100, 80),
+      minHW: 20,
+      maxHW: 30,
+      minHH: 30,
+      maxHH: 50,
+      density: 0.005,
+    }),
+    new RectangleStyle({
+      parallaxScale: 0.8,
+      isBackground: true,
+      color: color(60, 100, 100),
+      minHW: 50,
+      maxHW: 70,
+      minHH: 20,
+      maxHH: 30,
+      density: 0.01,
+    }),
+    new RectangleStyle({
+      parallaxScale: 2,
+      isBackground: false,
+      color: color(0, 0, 100, 0.8),
+      minHW: 50,
+      maxHW: 150,
+      minHH: 50,
+      maxHH: 150,
+      density: 0.005,
+    }),
+  ];
+
+  interactiveStyles = [
+    new RectangleStyle({
+      parallaxScale: 1,
+      isBackground: true,
+      color: color(180, 100, 100),
+      minHW: 40,
+      maxHW: 80,
+      minHH: 40,
+      maxHH: 80,
+      density: 0.008,
+    }),
+  ];
+
+  layersBG = [];
+  layersFG = [];
+  interactiveShapes = [];
 
   constructor(worldStartY) {
     super(
@@ -8,25 +66,40 @@ class AbstractBiome extends Biome {
       50, // startOverlapHeight
       200, // startHeight
       200, // endHeight
-      0.5, // gravity
+      0.3, // gravity
       10 // maxVelocity
     );
 
-    let layerScales = [0.2, 0.6, 1, 1.5]; // Different parallax scales for different layers of shapes
-    
-    for (let scale of layerScales) {
-      // Spawn height covers the full range the layer across all scroll positions
-      let spawnHeight = this.biomeHeight * scale + height * abs(1-scale);
-      this.parallaxLayers.push(new ParallaxLayer(scale, spawnHeight));
+    for (let style of this.decorativeStyles) {
+      let scale = style.parallaxScale;
+      // Spawn height covers the full range the layer, including when it scrolls all the way across the screen
+      let spawnHeight = this.biomeHeight * abs(scale) + height * abs(1 - abs(scale));
+      let parallaxLayer = new ParallaxLayer(scale, spawnHeight, this.biomeHeight);
+
+      let numberOfShapes = this.biomeHeight * style.density;
+      for (let i = 0; i < numberOfShapes; i++) {
+        let newShape = new DecorativeRectangle(this, parallaxLayer, style);
+        parallaxLayer.content.push(newShape);
+      }
+      if (style.isBackground) this.layersBG.push(parallaxLayer);
+      else this.layersFG.push(parallaxLayer);
     }
 
-    this.shapes = {};
-    for (let i = 0; i < 300; i++) {
-      let parallaxLayer = random(this.parallaxLayers);
-      let newShape = new Rectangle(parallaxLayer, this.biomeHeight, this.startHeight, this.endHeight);
+    for (let style of this.interactiveStyles) {
+      let numberOfShapes = this.biomeHeight * style.density;
+      for (let i = 0; i < numberOfShapes; i++) {
+        let newShape = new InteractiveRectangle(this, style);
+        this.interactiveShapes.push(newShape);
+      }
+    }
+  }
 
-      if (parallaxLayer.scale in this.shapes) this.shapes[parallaxLayer.scale].push(newShape);
-      else this.shapes[parallaxLayer.scale] = [newShape];
+  update(ball) {
+    for (let shape of this.interactiveShapes) {
+      if (!shape.collider.collidesWith(ball)) continue;
+
+      shape.collider.handleCollision(ball);
+      break;
     }
   }
 
@@ -37,39 +110,49 @@ class AbstractBiome extends Biome {
     rect(0, topY, width, this.biomeHeight);
     pop();
 
-    // Layer 0
-    let scaledTopY = this.scaleTopY(topY, this.parallaxLayers[0]);
-    this.shapes[this.parallaxLayers[0].scale]?.forEach((s) => s.draw(topY, scaledTopY));
+    for (let layer of this.layersBG) {
+      let scaledTopY = layer.scaleTopY(topY);
+      layer.content.forEach((s) => s.draw(topY, scaledTopY));
+    }
 
-    // Layer 1
-    scaledTopY = this.scaleTopY(topY, this.parallaxLayers[1]);
-    this.shapes[this.parallaxLayers[1].scale]?.forEach((s) => s.draw(topY, scaledTopY));
-
-    // Layer 2
-    scaledTopY = this.scaleTopY(topY, this.parallaxLayers[2]);
-    this.shapes[this.parallaxLayers[2].scale]?.forEach((s) => s.draw(topY, scaledTopY));
+    for (let shape of this.interactiveShapes) {
+      shape.draw(topY);
+    }
   }
 
   drawBodyFG(topY) {
-    // Layer 3
-    let scaledTopY = this.scaleTopY(topY, this.parallaxLayers[3]);
-    this.shapes[this.parallaxLayers[3].scale]?.forEach((s) => s.draw(topY, scaledTopY));
+    for (let layer of this.layersFG) {
+      let scaledTopY = layer.scaleTopY(topY);
+      layer.content.forEach((s) => s.draw(topY, scaledTopY));
+    }
   }
 
   drawStartBG(topY) {
-    this.drawBGSection(topY, this.startHeight, true);
+    push();
+    fill(120, 100, 40);
+    rect(0, topY, width, this.startHeight);
+    pop();
   }
 
   drawStartFG(topY) {
-    this.drawFGSection(topY, this.startHeight, true);
+    push();
+    fill(120, 100, 80);
+    rect(0, topY + 10, width, this.startHeight - 20);
+    pop();
   }
 
   drawEndBG(topY) {
-    this.drawBGSection(topY, this.endHeight, false);
+    push();
+    fill(240, 100, 40);
+    rect(0, topY + this.biomeHeight - this.endHeight, width, this.endHeight);
+    pop();
   }
 
   drawEndFG(topY) {
-    this.drawFGSection(topY, this.endHeight, false);
+    push();
+    fill(240, 100, 80);
+    rect(0, topY + this.biomeHeight - this.endHeight + 10, width, this.endHeight - 20);
+    pop();
   }
 
   drawBall(screenX, screenY, radius) {
@@ -80,104 +163,90 @@ class AbstractBiome extends Biome {
     circle(screenX, screenY, radius * 2);
     pop();
   }
+}
 
-  drawBGSection(topY, sectionHeight, isStart) {
-    push();
-    fill(0, 100, 40, 100);
-    noStroke();
-    beginShape();
-    if (isStart) {
-      vertex(0, topY - this.startOverlapHeight);
-      vertex(width * 0.25, topY);
-      vertex(width * 0.5, topY - this.startOverlapHeight);
-      vertex(width * 0.75, topY);
-      vertex(width, topY - this.startOverlapHeight);
-      vertex(width, topY + sectionHeight);
-      vertex(0, topY + sectionHeight);
-    } else {
-      const endTopY = topY + this.biomeHeight - this.endHeight;
-      vertex(0, endTopY + sectionHeight / 2);
-      vertex(width * 0.25, endTopY);
-      vertex(width * 0.5, endTopY + sectionHeight / 2);
-      vertex(width * 0.75, endTopY);
-      vertex(width, endTopY + sectionHeight / 2);
-      vertex(width, endTopY + sectionHeight);
-      vertex(0, endTopY + sectionHeight);
-    }
-    endShape(CLOSE);
-    pop();
-  }
-
-  drawFGSection(topY, sectionHeight, isStart) {
-    push();
-    fill(180, 100, 40, 100);
-    noStroke();
-    beginShape();
-    if (isStart) {
-      vertex(0, topY - this.startOverlapHeight + 20);
-      vertex(width * 0.25, topY);
-      vertex(width * 0.5, topY - this.startOverlapHeight + 20);
-      vertex(width * 0.75, topY);
-      vertex(width, topY - this.startOverlapHeight + 20);
-      vertex(width, topY + sectionHeight - 50);
-      vertex(0, topY + sectionHeight - 50);
-    } else {
-      const endTopY = topY + this.biomeHeight - this.endHeight;
-      vertex(0, endTopY + 20);
-      vertex(width * 0.25, endTopY + sectionHeight / 2);
-      vertex(width * 0.5, endTopY + 20);
-      vertex(width * 0.75, endTopY + sectionHeight / 2);
-      vertex(width, endTopY + 20);
-      vertex(width, endTopY + sectionHeight - 20);
-      vertex(0, endTopY + sectionHeight - 20);
-    }
-    endShape(CLOSE);
-    pop();
-  }
-
-  scaleTopY(topY, layer) {
-    let screenCenter = height / 2;
-    let middleY = topY + this.biomeHeight / 2;
-    let distanceFromCenter = middleY - screenCenter;
-    let scaledDistance = distanceFromCenter * layer.scale;
-
-    let scaledMiddleY = screenCenter + scaledDistance;
-    let scaledTopY = scaledMiddleY - layer.spawnHeight / 2;
-    return scaledTopY;
+class RectangleStyle {
+  constructor({ parallaxScale, isBackground, color, minHW, maxHW, minHH, maxHH, density }) {
+    this.parallaxScale = parallaxScale;
+    this.isBackground = isBackground;
+    this.color = color;
+    this.minHW = minHW;
+    this.maxHW = maxHW;
+    this.minHH = minHH;
+    this.maxHH = maxHH;
+    this.density = density;
   }
 }
 
-class Rectangle {
-  constructor(parallaxLayer, biomeHeight, startHeight, endHeight) {
-    this.localX = random() * width;
-    this.localY = random() * parallaxLayer.spawnHeight;
+class DecorativeRectangle {
+  constructor(biome, parallaxLayer, style) {
+    this.localCenterX = random() * width;
+    this.localCenterY = random() * parallaxLayer.spawnHeight;
 
-    this.w = random() * (parallaxLayer.scale * 40) + 10;
-    this.h = random() * (parallaxLayer.scale * 40) + 10;
+    this.hw = random() * (style.maxHW - style.minHW) + style.minHW;
+    this.hh = random() * (style.maxHH - style.minHH) + style.minHH;
 
-    this.color = color(parallaxLayer.scale * 60, 100, parallaxLayer.scale * 40 + 30);
-    this.biomeHeight = biomeHeight;
-    this.startHeight = startHeight;
-    this.endHeight = endHeight;
+    this.color = style.color;
+    this.biomeHeight = biome.biomeHeight;
+    this.startHeight = biome.startHeight;
+    this.endHeight = biome.endHeight;
+    this.worldStartY = biome.worldStartY;
   }
 
   draw(topY, scaledTopY) {
-    const screenX = this.localX;
-    const screenY = scaledTopY + this.localY;
-    if (screenY + this.h / 2 < 0 || screenY - this.h / 2 > height) return; // Skip if not on screen
-    if (screenY + this.h / 2 < topY + this.startHeight / 2 || screenY - this.h / 2 > topY + this.biomeHeight - this.endHeight / 2) return; // Skip if not in biome's range
+    const screenX = this.localCenterX;
+    const screenY = scaledTopY + this.localCenterY;
+    if (screenY + this.hh < 0 || screenY - this.hh > height) return; // Skip if not on screen
+    if (screenY + this.hh < topY + this.startHeight || screenY - this.hh > topY + this.biomeHeight - this.endHeight)
+      return; // Skip if not in biome's range
 
     push();
     noStroke();
     fill(this.color);
-    rect(screenX - this.w / 2, screenY - this.h / 2, this.w, this.h);
+    rect(screenX - this.hw, screenY - this.hh, this.hw * 2, this.hh * 2);
     pop();
   }
 }
 
-class ParallaxLayer {
-  constructor(scale, spawnHeight) {
-    this.scale = scale;
-    this.spawnHeight = spawnHeight;
+class InteractiveRectangle {
+  constructor(biome, style) {
+    this.localCenterX = random() * width;
+    let spawnPaddingTop = 400; // Prevent spawning too close to the start of the biome
+    this.localCenterY = random() * (biome.biomeHeight - biome.startHeight - biome.endHeight - spawnPaddingTop) + biome.startHeight + spawnPaddingTop;
+
+    this.hw = random() * (style.maxHW - style.minHW) + style.minHW;
+    this.hh = random() * (style.maxHH - style.minHH) + style.minHH;
+
+    this.color = style.color;
+    this.biomeHeight = biome.biomeHeight;
+    this.startHeight = biome.startHeight;
+    this.endHeight = biome.endHeight;
+    this.worldStartY = biome.worldStartY;
+
+    this.collider = new RectCollider(this.localCenterX, this.worldStartY + this.localCenterY, this.hw, this.hh);
+  }
+
+  draw(topY) {
+    const screenX = this.localCenterX;
+    const screenY = this.localCenterY + topY;
+    if (screenY + this.hh < 0 || screenY - this.hh > height) return; // Skip if not on screen
+    if (screenY + this.hh < topY + this.startHeight || screenY - this.hh > topY + this.biomeHeight - this.endHeight)
+      return; // Skip if not in biome's range
+
+    push();
+    noStroke();
+    fill(this.color);
+    rect(screenX - this.hw, screenY - this.hh, this.hw * 2, this.hh * 2);
+
+    noFill();
+    stroke("red");
+    strokeWeight(2);
+    rect(
+      this.collider.worldCenterPos.x - this.collider.hw,
+      this.collider.worldCenterPos.y - this.collider.hh - this.worldStartY + topY,
+      this.collider.hw * 2,
+      this.collider.hh * 2
+    );
+    pop();
   }
 }

@@ -1,29 +1,35 @@
 class RectCollider extends Collider {
-  constructor(worldX, worldY, width, height, bounciness = 1) {
-    super(worldX, worldY, bounciness);
-    this.width = width;
-    this.height = height;
+  constructor(worldCenterX, worldCenterY, halfWidth, halfHeight, bounciness = 1) {
+    super(worldCenterX, worldCenterY, bounciness);
+    this.hw = halfWidth;
+    this.hh = halfHeight;
   }
 
   collidesWith(ball) {
     let closest = this.getClosestPoint(ball);
-    return dist(ball.worldPosition.x, ball.worldPosition.y, closest.x, closest.y) < ball.radius;
+    let dx = ball.worldCenterPos.x - closest.x;
+    let dy = ball.worldCenterPos.y - closest.y;
+    let distSquared = dx * dx + dy * dy;
+    return distSquared < ball.radius * ball.radius;
   }
 
   getNormal(ball) {
     let closest = this.getClosestPoint(ball);
-    let d = dist(ball.worldPosition, closest);
+    let dx = ball.worldCenterPos.x - closest.x;
+    let dy = ball.worldCenterPos.y - closest.y;
+    let distSquared = dx * dx + dy * dy;
 
     // Ball center is outside the rectangle
-    if (d > 0.0001) {
-      return sub(ball.worldPosition, closest).normalize();
+    if (distSquared > 0.0001) {
+      let normalizeDenom = 1 / Math.sqrt(distSquared);
+      return createVector(dx * normalizeDenom, dy * normalizeDenom);
     }
 
     // Ball center is inside the rectangle, so find the closest edge and create normal pointing to it
-    let distLeft = ball.worldPosition.x - (this.worldPosition.x - this.width / 2);
-    let distRight = this.worldPosition.x + this.width / 2 - ball.worldPosition.x;
-    let distTop = ball.worldPosition.y - (this.worldPosition.y - this.height / 2);
-    let distBottom = this.worldPosition.y + this.height / 2 - ball.worldPosition.y;
+    let distLeft = ball.worldCenterPos.x - (this.worldCenterPos.x - this.hw);
+    let distRight = this.worldCenterPos.x + this.hw - ball.worldCenterPos.x;
+    let distTop = ball.worldCenterPos.y - (this.worldCenterPos.y - this.hh);
+    let distBottom = this.worldCenterPos.y + this.hh - ball.worldCenterPos.y;
     let minDist = Math.min(distLeft, distRight, distTop, distBottom);
 
     if (minDist === distLeft) return createVector(-1, 0);
@@ -34,30 +40,40 @@ class RectCollider extends Collider {
 
   correctPosition(ball, normal) {
     let closest = this.getClosestPoint(ball);
-    let d = p5.Vector.dist(ball.worldPosition, closest);
+    let dx = ball.worldCenterPos.x - closest.x;
+    let dy = ball.worldCenterPos.y - closest.y;
+    let distSquared = dx * dx + dy * dy;
 
     let overlap;
-    if (d > 0.0001) {
+    if (distSquared > 0.0001) {
       // Ball center is outside the rectangle
-      overlap = ball.radius - d;
+      overlap = ball.radius - Math.sqrt(distSquared);
     } else {
       // Ball center is inside the rectangle
-      let distLeft = ball.worldPosition.x - (this.worldPosition.x - this.width / 2);
-      let distRight = this.worldPosition.x + this.width / 2 - ball.worldPosition.x;
-      let distTop = ball.worldPosition.y - (this.worldPosition.y - this.height / 2);
-      let distBottom = this.worldPosition.y + this.height / 2 - ball.worldPosition.y;
+      let distLeft = ball.worldCenterPos.x - (this.worldCenterPos.x - this.hw);
+      let distRight = this.worldCenterPos.x + this.hw - ball.worldCenterPos.x;
+      let distTop = ball.worldCenterPos.y - (this.worldCenterPos.y - this.hh);
+      let distBottom = this.worldCenterPos.y + this.hh - ball.worldCenterPos.y;
 
       // The overlap is distance to closest edge + ball radius
       overlap = Math.min(distLeft, distRight, distTop, distBottom) + ball.radius;
     }
 
-    ball.worldPosition.add(p5.Vector.mult(normal, overlap));
+    ball.worldCenterPos.add(p5.Vector.mult(normal, overlap));
   }
 
   getClosestPoint(ball) {
     return createVector(
-      constrain(ball.worldPosition.x, this.worldPosition.x - this.width / 2, this.worldPosition.x + this.width / 2),
-      constrain(ball.worldPosition.y, this.worldPosition.y - this.height / 2, this.worldPosition.y + this.height / 2)
+      constrain(
+        ball.worldCenterPos.x,
+        this.worldCenterPos.x - this.hw,
+        this.worldCenterPos.x + this.hw
+      ),
+      constrain(
+        ball.worldCenterPos.y,
+        this.worldCenterPos.y - this.hh,
+        this.worldCenterPos.y + this.hh
+      )
     );
   }
 }

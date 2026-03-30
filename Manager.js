@@ -20,9 +20,9 @@ class Manager {
   update() {
     this.currentBiome = null;
     for (let biome of this.biomes) {
-      biome.update();
+      biome.update(this.ball);
 
-      if (!this.currentBiome && this.ball.worldPosition.y <= biome.worldStartY + biome.biomeHeight) {
+      if (!this.currentBiome && this.ball.worldCenterPos.y <= biome.worldStartY + biome.biomeHeight) {
         this.currentBiome = biome;
       }
     }
@@ -38,8 +38,8 @@ class Manager {
     }
 
     // Ball
-    let ballScreenY = this.ball.worldPosition.y - this.cameraWorldY;
-    this.currentBiome.drawBall(this.ball.worldPosition.x, ballScreenY, this.ball.radius);
+    let ballScreenY = this.ball.worldCenterPos.y - this.cameraWorldY;
+    this.currentBiome.drawBall(this.ball.worldCenterPos.x, ballScreenY, this.ball.radius);
 
     // Foreground
     for (let biome of this.biomes) {
@@ -47,7 +47,7 @@ class Manager {
     }
 
     // Update camera
-    let targetCameraY = this.ball.worldPosition.y - height / 3;
+    let targetCameraY = this.ball.worldCenterPos.y - height / 3;
     if (targetCameraY < 0) targetCameraY = 0;
     else if (targetCameraY > this.totalWorldHeight - height) targetCameraY = this.totalWorldHeight - height;
     this.cameraWorldY += (targetCameraY - this.cameraWorldY) * this.lerpSpeed;

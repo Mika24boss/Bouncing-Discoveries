@@ -1,15 +1,15 @@
 class Collider {
-  constructor(worldX, worldY, bounciness = 1) {
+  constructor(worldCenterX, worldCenterY, bounciness = 1) {
     if (this.constructor === Collider) {
       throw new Error("Abstract class 'Collider' cannot be instantiated.");
     }
 
-    this.worldPosition = createVector(worldX, worldY);
+    this.worldCenterPos = createVector(worldCenterX, worldCenterY);
     this.bounciness = bounciness;
   }
 
   /**
-   * Handles the collision response between the collider and the player's ball.
+   * Handles the collision response between the collider and the player's ball by bouncing the ball off the collider.
    * @param {Ball} ball Player's ball
    */
   handleCollision(ball) {

@@ -71,7 +71,7 @@ class SpaceBiome extends Biome {
     }
   }
 
-  update() {
+  update(ball) {
     this.asteroidsBG = this.updateAsteroids(true, this.asteroidsBG, this.asteroidDelayBG, this.minAsteroidDelayBG, this.maxAsteroidDelayBG, this.minAsteroidRadiusBG);
     this.asteroidsFG = this.updateAsteroids(false, this.asteroidsFG, this.asteroidDelayFG, this.minAsteroidDelayFG, this.maxAsteroidDelayFG, this.minAsteroidRadiusFG);
     this.asteroidDelayBG--;

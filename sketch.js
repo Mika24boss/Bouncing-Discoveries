@@ -12,6 +12,7 @@ function setup() {
   colorMode(HSB);
   let canvasHeight = windowHeight;
   let canvasWidth = canvasHeight * ASPECT_RATIO;
+  // let canvasWidth = windowWidth;
   canvasWidth = min(canvasWidth, windowWidth);
   createCanvas(canvasWidth, canvasHeight);
 
