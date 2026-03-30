@@ -15,18 +15,18 @@ class SpaceBiome extends Biome {
   earthEmojis = ["🌍", "🌎", "🌏"];
 
   // Background asteroids
-  asteroidsBG = [];
-  asteroidDelayBG = 0;
-  minAsteroidDelayBG = 5;
-  maxAsteroidDelayBG = 10;
-  minAsteroidRadiusBG = 5;
+  asteroidsBG = []; // Array of asteroids
+  asteroidDelayBG = 0; // Spawning delay
+  minAsteroidDelayBG = 5; // Minimum spawning delay
+  maxAsteroidDelayBG = 10; // Maximum spawning delay
+  minAsteroidRadiusBG = 5; // Minimum radius
 
   // Foreground asteroids
-  asteroidsFG = [];
-  asteroidDelayFG = 0;
-  minAsteroidDelayFG = 5;
-  maxAsteroidDelayFG = 10;
-  minAsteroidRadiusFG = 5;
+  asteroidsFG = []; // Array of asteroids
+  asteroidDelayFG = 0; // Spawning delay
+  minAsteroidDelayFG = 5; // Minimum spawning delay
+  maxAsteroidDelayFG = 10; // Maximum spawning delay
+  minAsteroidRadiusFG = 5; // Minimum radius
 
   childAsteroidSpeedMult = 0.5; // Multiplier for child asteroid speed compared to parent asteroid
   childAsteroidSpreadProp = 0.5; // Controls the spread of child asteroids (between 0 and 1), where 0 means all children have the same velocity
@@ -323,6 +323,13 @@ class SpaceBiome extends Biome {
 
 class Asteroid {
   constructor(biomeHeight, startHeight, endHeight, beltHeight, isBackground, radius = null, position = null, velocity = null) {
+    this.biomeHeight = biomeHeight;
+    this.startHeight = startHeight;
+    this.endHeight = endHeight;
+    this.toDelete = false;
+    this.rotationSpeed = random(-0.01, 0.01);
+    this.rotation = 0;
+
     if (radius) this.radius = radius;
 
     let positionRndNumber = -1;
@@ -333,9 +340,8 @@ class Asteroid {
       positionRndNumber = random();
     }
 
-    this.isBackground = isBackground;
-
     // Background
+    this.isBackground = isBackground;
     if (this.isBackground) {
       this.color = color(230, 0, random(8, 16));
       if (!radius) this.radius = random(5, 12);
@@ -367,17 +373,24 @@ class Asteroid {
       }
     }
 
-    this.biomeHeight = biomeHeight;
-    this.startHeight = startHeight;
-    this.endHeight = endHeight;
-    this.toDelete = false;
+    // Asteroid shape
     this.numPoints = floor(random(5, 10));
     this.offset = [];
     for (var i = 0; i < this.numPoints; i++) {
       this.offset[i] = random(-this.radius * 0.5, this.radius * 0.5);
     }
-    this.rotationSpeed = random(-0.01, 0.01);
-    this.rotation = 0;
+
+    // Craters
+    this.craters = [];
+    let numCraters = floor(random(3, 6));
+    for (let i = 0; i < numCraters; i++) {
+      this.craters.push({
+        x: random(-this.radius * 0.3, this.radius * 0.3),
+        y: random(-this.radius * 0.3, this.radius * 0.3),
+        size: random(this.radius * 0.1, this.radius * 0.2),
+        brightnessOffset: random(-5, -15)
+      });
+    }
   }
 
   update() {
@@ -387,20 +400,50 @@ class Asteroid {
 
   draw(topY) {
     push();
+    translate(this.position.x, this.position.y + topY);
+    rotate(this.rotation);
+
+    // Base shape (the shadow)
     fill(this.color);
     noStroke();
-    translate(this.position.x, this.position.y + topY);
+    this.drawAsteroidShape();
+
+    // Highlight (the lit side)
+    push();
+    let newH = hue(this.color);
+    let newS = saturation(this.color);
+    let newB = brightness(this.color);
+    fill(newH, newS * 0.8, newB + 15);
+    translate(-this.radius * 0.1, -this.radius * 0.1);
+    scale(0.8);
+    this.drawAsteroidShape();
+    pop();
+
+    // Draw craters
+    for (let crater of this.craters) {
+      fill(newH, newS, newB + crater.brightnessOffset);
+      ellipse(crater.x, crater.y, crater.size, crater.size * 0.8);
+
+      // Highlight on the crater
+      noFill();
+      stroke(newH, newS, newB + 5);
+      strokeWeight(1);
+      arc(crater.x, crater.y, crater.size, crater.size * 0.8, PI, TWO_PI);
+    }
+
+    pop();
+  }
+
+  drawAsteroidShape() {
     beginShape();
     for (var i = 0; i < this.numPoints; i++) {
       var angle = map(i, 0, this.numPoints, 0, TWO_PI);
-      angle += this.rotation;
       var r = this.radius + this.offset[i];
       var x = r * cos(angle);
       var y = r * sin(angle);
       vertex(x, y);
     }
     endShape(CLOSE);
-    pop();
   }
 
   isOutsideBiome() {
