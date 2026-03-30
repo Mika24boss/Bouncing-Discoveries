@@ -13,25 +13,36 @@ class SpaceBiome extends Biome {
   cullPadding = 5; // Extra padding for culling stars outside the screen (without padding, some partially visible stars at the edges can be culled)
   earthEmoji = ""; // Emoji to represent Earth in the biome
   earthEmojis = ["🌍", "🌎", "🌏"];
-  asteroids = [];
-  asteroidDelay = 0;
-  minAsteroidDelay = 200;
-  maxAsteroidDelay = 500;
-  minAsteroidRadius = 2;
+
+  // Background asteroids
+  asteroidsBG = [];
+  asteroidDelayBG = 0;
+  minAsteroidDelayBG = 5;
+  maxAsteroidDelayBG = 10;
+  minAsteroidRadiusBG = 5;
+
+  // Foreground asteroids
+  asteroidsFG = [];
+  asteroidDelayFG = 0;
+  minAsteroidDelayFG = 5;
+  maxAsteroidDelayFG = 10;
+  minAsteroidRadiusFG = 5;
+
   childAsteroidSpeedMult = 0.5; // Multiplier for child asteroid speed compared to parent asteroid
+  childAsteroidSpreadProp = 0.5; // Controls the spread of child asteroids (between 0 and 1), where 0 means all children have the same velocity
+  beltHeight = 1000; // Height taken up by the asteroid belt
 
   constructor(worldStartY) {
     super(
       worldStartY,
-      1500, // biomeHeight
+      5000, // biomeHeight
       0, // startOverlapHeight
       0, // startHeight
       0, // endHeight
       0.1, // gravity
-      1 // maxVelocity
+      3 // maxVelocity
     );
 
-    this.asteroidDelay = random(200, 300); // Initial delay before the first asteroid appears
     this.earthEmoji = random(this.earthEmojis);
     this.time = random(TWO_PI);
     this.morphTime = random(1000);
@@ -61,10 +72,27 @@ class SpaceBiome extends Biome {
   }
 
   update() {
+    this.asteroidsBG = this.updateAsteroids(true, this.asteroidsBG, this.asteroidDelayBG, this.minAsteroidDelayBG, this.maxAsteroidDelayBG, this.minAsteroidRadiusBG);
+    this.asteroidsFG = this.updateAsteroids(false, this.asteroidsFG, this.asteroidDelayFG, this.minAsteroidDelayFG, this.maxAsteroidDelayFG, this.minAsteroidRadiusFG);
+    this.asteroidDelayBG--;
+    this.asteroidDelayFG--;
+
+    if (this.asteroidDelayBG <= 0) {
+      this.asteroidsBG.push(new Asteroid(this.biomeHeight, this.startHeight, this.endHeight, this.beltHeight, true));
+      this.asteroidDelayBG = random(this.minAsteroidDelayBG, this.maxAsteroidDelayBG);
+    }
+
+    if (this.asteroidDelayFG <= 0) {
+      this.asteroidsFG.push(new Asteroid(this.biomeHeight, this.startHeight, this.endHeight, this.beltHeight, false));
+      this.asteroidDelayFG = random(this.minAsteroidDelayFG, this.maxAsteroidDelayFG);
+    }
+  }
+
+  updateAsteroids(isBackground, asteroids, asteroidDelay, minAsteroidDelay, maxAsteroidDelay, minAsteroidRadius) {
     let newAsteroids = [];
 
-    for (let astIndex = 0; astIndex < this.asteroids.length; astIndex++) {
-      let asteroid = this.asteroids[astIndex];
+    for (let astIndex = 0; astIndex < asteroids.length; astIndex++) {
+      let asteroid = asteroids[astIndex];
       if (asteroid.toDelete) continue;
 
       asteroid.update();
@@ -75,8 +103,8 @@ class SpaceBiome extends Biome {
       }
 
       // Check for collisions with other asteroids
-      for (let otherIndex = astIndex + 1; otherIndex < this.asteroids.length; otherIndex++) {
-        let other = this.asteroids[otherIndex];
+      for (let otherIndex = astIndex + 1; otherIndex < asteroids.length; otherIndex++) {
+        let other = asteroids[otherIndex];
 
         if (other.toDelete) continue;
         if (!asteroid.isAsteroidHit(other)) continue;
@@ -89,22 +117,24 @@ class SpaceBiome extends Biome {
           other.position,
           asteroid.radius / (asteroid.radius + other.radius)
         );
+        let baseVelocity = p5.Vector.lerp(
+          asteroid.velocity,
+          other.velocity,
+          asteroid.radius / (asteroid.radius + other.radius)
+        );
+        baseVelocity.y *= this.childAsteroidSpeedMult * (1 - this.childAsteroidSpreadProp);
         let creationGap = max(asteroid.radius, other.radius) * 1.1;
 
-        const { directions, params } = this.calculateChildrenParams(intersection, creationGap, asteroid, other);
+        const { directions, params } = this.calculateChildrenParams(minAsteroidRadius, intersection, creationGap, asteroid, other);
 
-        newAsteroids = newAsteroids.concat(this.createChildrenAsteroids(directions, params));
+        newAsteroids = newAsteroids.concat(this.createChildrenAsteroids(isBackground, directions, params, baseVelocity));
         break;
       }
     }
 
-    this.asteroids = this.asteroids.filter((a) => !a.toDelete).concat(newAsteroids);
+    asteroids = asteroids.filter((a) => !a.toDelete).concat(newAsteroids);
 
-    if (this.asteroidDelay <= 0) {
-      this.asteroids.push(new Asteroid(this.biomeHeight, this.startHeight, this.endHeight));
-      this.asteroidDelay = random(this.minAsteroidDelay, this.maxAsteroidDelay);
-    }
-    this.asteroidDelay--;
+    return asteroids;
   }
 
   drawBodyBG(topY) {
@@ -201,10 +231,14 @@ class SpaceBiome extends Biome {
       }
     }
     pop();
+
+    for (let asteroid of this.asteroidsBG) {
+      asteroid.draw(topY);
+    }
   }
 
   drawBodyFG(topY) {
-    for (let asteroid of this.asteroids) {
+    for (let asteroid of this.asteroidsFG) {
       asteroid.draw(topY);
     }
   }
@@ -217,7 +251,7 @@ class SpaceBiome extends Biome {
     pop();
   }
 
-  calculateChildrenParams(intersection, creationGap, asteroid1, asteroid2) {
+  calculateChildrenParams(minAsteroidRadius, intersection, creationGap, asteroid1, asteroid2) {
     // Create children angles and spawn positions
     let angle = random(0, PI / 2);
     let angles = [angle, angle + PI / 2, angle + PI, angle + (3 * PI) / 2];
@@ -234,10 +268,10 @@ class SpaceBiome extends Biome {
 
     // Calculate children velocities and radius
     let params = [];
-    let mag1 = asteroid1.velocity.mag() * this.childAsteroidSpeedMult;
-    let mag2 = asteroid2.velocity.mag() * this.childAsteroidSpeedMult;
+    let mag1 = asteroid1.velocity.mag() * this.childAsteroidSpeedMult * this.childAsteroidSpreadProp;
+    let mag2 = asteroid2.velocity.mag() * this.childAsteroidSpeedMult * this.childAsteroidSpreadProp;
 
-    if (asteroid1.radius / 2 >= this.minAsteroidRadius) {
+    if (asteroid1.radius / 2 >= minAsteroidRadius) {
       for (let i = 0; i < 2; i++) {
         params.push({
           mag: mag1,
@@ -246,7 +280,7 @@ class SpaceBiome extends Biome {
       }
     }
 
-    if (asteroid2.radius / 2 >= this.minAsteroidRadius) {
+    if (asteroid2.radius / 2 >= minAsteroidRadius) {
       for (let i = 0; i < 2; i++) {
         params.push({
           mag: mag2,
@@ -261,19 +295,21 @@ class SpaceBiome extends Biome {
     };
   }
 
-  createChildrenAsteroids(directions, params) {
+  createChildrenAsteroids(isBackground, directions, params, baseVelocity) {
     let newAsteroids = [];
 
     for (let index = 0; index < params.length; index++) {
       let direction = directions[index];
       let param = params[index];
 
-      let velocity = createVector(cos(direction.angle), sin(direction.angle)).mult(param.mag);
+      let velocity = createVector(cos(direction.angle), sin(direction.angle)).mult(param.mag).add(baseVelocity);
       newAsteroids.push(
         new Asteroid(
           this.biomeHeight,
           this.startHeight,
           this.endHeight,
+          this.beltHeight,
+          isBackground,
           param.radius,
           createVector(direction.x, direction.y),
           velocity
@@ -286,12 +322,51 @@ class SpaceBiome extends Biome {
 }
 
 class Asteroid {
-  constructor(biomeHeight, startHeight, endHeight, radius = null, position = null, velocity = null) {
-    if (radius) {
-      this.radius = radius;
+  constructor(biomeHeight, startHeight, endHeight, beltHeight, isBackground, radius = null, position = null, velocity = null) {
+    if (radius) this.radius = radius;
+
+    let positionRndNumber = -1;
+    if (position && velocity) {
+      this.position = position.copy();
+      this.velocity = velocity.copy();
     } else {
-      this.radius = random(20, 50);
+      positionRndNumber = random();
     }
+
+    this.isBackground = isBackground;
+
+    // Background
+    if (this.isBackground) {
+      this.color = color(230, 0, random(8, 16));
+      if (!radius) this.radius = random(5, 12);
+
+      // Left spawn
+      if (positionRndNumber > -1 && positionRndNumber < 0.5) {
+        this.position = createVector(-this.radius, random(0, beltHeight));
+        this.velocity = createVector(random(1, 2), random(-0.5, 0.5));
+      }
+      // Right spawn
+      else if (positionRndNumber > -1) {
+        this.position = createVector(width + this.radius, random(biomeHeight - beltHeight, biomeHeight));
+        this.velocity = createVector(random(-2, -1), random(-0.5, 0.5));
+      }
+
+    } else { // Foreground
+      this.color = color(230, 5, random(30, 55));
+      if (!radius) this.radius = random(15, 30);
+
+      // Left spawn
+      if (positionRndNumber > -1 && positionRndNumber < 0.5) {
+        this.position = createVector(-this.radius, random(0, beltHeight));
+        this.velocity = createVector(random(3, 6), random(-3, 3));
+      }
+      // Right spawn
+      else if (positionRndNumber > -1) {
+        this.position = createVector(width + this.radius, random(biomeHeight - beltHeight, biomeHeight));
+        this.velocity = createVector(random(-6, -3), random(-3, 3));
+      }
+    }
+
     this.biomeHeight = biomeHeight;
     this.startHeight = startHeight;
     this.endHeight = endHeight;
@@ -301,48 +376,24 @@ class Asteroid {
     for (var i = 0; i < this.numPoints; i++) {
       this.offset[i] = random(-this.radius * 0.5, this.radius * 0.5);
     }
-
-    if (position && velocity) {
-      this.position = position.copy();
-      this.velocity = velocity.copy();
-      return;
-    }
-
-    let rnd = random();
-    // Top spawn
-    if (rnd < 0.15) {
-      this.position = createVector(random(width), startHeight - this.radius);
-      this.velocity = createVector(random(-5, 5), random(1, 5));
-    }
-    // Bottom spawn
-    else if (rnd < 0.3) {
-      this.position = createVector(random(width), biomeHeight - endHeight + this.radius);
-      this.velocity = createVector(random(-5, 5), random(-5, -1));
-    }
-    // Left spawn
-    else if (rnd < 0.65) {
-      this.position = createVector(-this.radius, random(biomeHeight));
-      this.velocity = createVector(random(1, 5), random(-5, 5));
-    }
-    // Right spawn
-    else {
-      this.position = createVector(width + this.radius, random(biomeHeight));
-      this.velocity = createVector(random(-5, -1), random(-5, 5));
-    }
+    this.rotationSpeed = random(-0.01, 0.01);
+    this.rotation = 0;
   }
 
   update() {
     this.position.add(this.velocity);
+    this.rotation += this.rotationSpeed;
   }
 
   draw(topY) {
     push();
-    fill("grey");
+    fill(this.color);
     noStroke();
     translate(this.position.x, this.position.y + topY);
     beginShape();
     for (var i = 0; i < this.numPoints; i++) {
       var angle = map(i, 0, this.numPoints, 0, TWO_PI);
+      angle += this.rotation;
       var r = this.radius + this.offset[i];
       var x = r * cos(angle);
       var y = r * sin(angle);
