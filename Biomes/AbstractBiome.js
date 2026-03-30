@@ -11,7 +11,7 @@ class AbstractBiome extends Biome {
       density: 0.01,
     }),
     new RectangleStyle({
-      parallaxScale: -0.6,
+      parallaxScale: 0.6,
       isBackground: true,
       color: color(30, 100, 80),
       minHW: 20,
@@ -64,17 +64,15 @@ class AbstractBiome extends Biome {
       worldStartY,
       5000, // biomeHeight
       50, // startOverlapHeight
-      200, // startHeight
-      200, // endHeight
+      100, // startHeight
+      100, // endHeight
       0.3, // gravity
-      10 // maxVelocity
+      30 // maxVelocity
     );
 
     for (let style of this.decorativeStyles) {
       let scale = style.parallaxScale;
-      // Spawn height covers the full range the layer, including when it scrolls all the way across the screen
-      let spawnHeight = this.biomeHeight * abs(scale) + height * abs(1 - abs(scale));
-      let parallaxLayer = new ParallaxLayer(scale, spawnHeight, this.biomeHeight);
+      let parallaxLayer = new ParallaxLayer(scale, this.biomeHeight);
 
       let numberOfShapes = this.biomeHeight * style.density;
       for (let i = 0; i < numberOfShapes; i++) {
@@ -110,10 +108,7 @@ class AbstractBiome extends Biome {
     rect(0, topY, width, this.biomeHeight);
     pop();
 
-    for (let layer of this.layersBG) {
-      let scaledTopY = layer.scaleTopY(topY);
-      layer.content.forEach((s) => s.draw(topY, scaledTopY));
-    }
+    this.layersBG.forEach(layer => layer.draw(topY));
 
     for (let shape of this.interactiveShapes) {
       shape.draw(topY);
@@ -121,37 +116,20 @@ class AbstractBiome extends Biome {
   }
 
   drawBodyFG(topY) {
-    for (let layer of this.layersFG) {
-      let scaledTopY = layer.scaleTopY(topY);
-      layer.content.forEach((s) => s.draw(topY, scaledTopY));
-    }
-  }
-
-  drawStartBG(topY) {
-    push();
-    fill(120, 100, 40);
-    rect(0, topY, width, this.startHeight);
-    pop();
+    this.layersFG.forEach(layer => layer.draw(topY));
   }
 
   drawStartFG(topY) {
     push();
     fill(120, 100, 80);
-    rect(0, topY + 10, width, this.startHeight - 20);
-    pop();
-  }
-
-  drawEndBG(topY) {
-    push();
-    fill(240, 100, 40);
-    rect(0, topY + this.biomeHeight - this.endHeight, width, this.endHeight);
+    rect(0, topY - this.startOverlapHeight, width, this.startHeight + this.startOverlapHeight);
     pop();
   }
 
   drawEndFG(topY) {
     push();
     fill(240, 100, 80);
-    rect(0, topY + this.biomeHeight - this.endHeight + 10, width, this.endHeight - 20);
+    rect(0, topY + this.biomeHeight - this.endHeight, width, this.endHeight);
     pop();
   }
 
@@ -190,7 +168,6 @@ class DecorativeRectangle {
     this.biomeHeight = biome.biomeHeight;
     this.startHeight = biome.startHeight;
     this.endHeight = biome.endHeight;
-    this.worldStartY = biome.worldStartY;
   }
 
   draw(topY, scaledTopY) {
@@ -223,7 +200,7 @@ class InteractiveRectangle {
     this.endHeight = biome.endHeight;
     this.worldStartY = biome.worldStartY;
 
-    this.collider = new RectCollider(this.localCenterX, this.worldStartY + this.localCenterY, this.hw, this.hh);
+    this.collider = new RectCollider(this.localCenterX, this.worldStartY + this.localCenterY, this.hw, this.hh, 0.8);
   }
 
   draw(topY) {

@@ -35,7 +35,7 @@ class SpaceBiome extends Biome {
   constructor(worldStartY) {
     super(
       worldStartY,
-      5000, // biomeHeight
+      6000, // biomeHeight
       0, // startOverlapHeight
       0, // startHeight
       0, // endHeight
@@ -72,8 +72,8 @@ class SpaceBiome extends Biome {
   }
 
   update(ball) {
-    this.asteroidsBG = this.updateAsteroids(true, this.asteroidsBG, this.asteroidDelayBG, this.minAsteroidDelayBG, this.maxAsteroidDelayBG, this.minAsteroidRadiusBG);
-    this.asteroidsFG = this.updateAsteroids(false, this.asteroidsFG, this.asteroidDelayFG, this.minAsteroidDelayFG, this.maxAsteroidDelayFG, this.minAsteroidRadiusFG);
+    this.asteroidsBG = this.updateAsteroids(true, this.asteroidsBG, this.minAsteroidRadiusBG);
+    this.asteroidsFG = this.updateAsteroids(false, this.asteroidsFG, this.minAsteroidRadiusFG);
     this.asteroidDelayBG--;
     this.asteroidDelayFG--;
 
@@ -88,7 +88,7 @@ class SpaceBiome extends Biome {
     }
   }
 
-  updateAsteroids(isBackground, asteroids, asteroidDelay, minAsteroidDelay, maxAsteroidDelay, minAsteroidRadius) {
+  updateAsteroids(isBackground, asteroids, minAsteroidRadius) {
     let newAsteroids = [];
 
     for (let astIndex = 0; astIndex < asteroids.length; astIndex++) {

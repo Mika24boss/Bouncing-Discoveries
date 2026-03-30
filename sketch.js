@@ -18,7 +18,7 @@ function setup() {
 
   // Inject processed matrix text into the class so it can access it
   MatrixBiome.codeString = rawTextCode.join("").replace(/\s+/g, ""); // Remove all whitespace
-  
+
   manager = new Manager();
 }
 
@@ -29,13 +29,16 @@ function draw() {
 }
 
 function keyPressed() {
-  let force = 30;
+  let force = 15;
   switch (keyCode) {
     case 32: // Space key
       paused = !paused;
       break;
     case UP_ARROW:
       manager.pushBall(0, -force);
+      break;
+    case DOWN_ARROW:
+      manager.pushBall(0, force);
       break;
     case RIGHT_ARROW:
       manager.pushBall(force, 0);

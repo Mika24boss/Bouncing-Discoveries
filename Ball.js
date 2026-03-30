@@ -17,26 +17,26 @@ class Ball {
     this.velocity.add(createVector(x, y));
   }
 
-  checkWorldEdges(bounciness = 1) {
+  checkWorldEdges(sideBounciness = 1, bottomBounciness = 0.8, topBounciness = 0.8) {
     // Top border
     if (this.worldCenterPos.y - this.radius < 0) {
       this.worldCenterPos.y = this.radius;
-      this.velocity.y *= -bounciness;
+      this.velocity.y *= -topBounciness;
     }
     // Bottom border
     if (this.worldCenterPos.y + this.radius > this.totalWorldHeight) {
       this.worldCenterPos.y = this.totalWorldHeight - this.radius;
-      this.velocity.y *= -bounciness;
+      this.velocity.y *= -bottomBounciness;
     }
     // Left edge
     if (this.worldCenterPos.x - this.radius < 0) {
       this.worldCenterPos.x = this.radius;
-      this.velocity.x *= -bounciness;
+      this.velocity.x *= -sideBounciness;
     }
     // Right edge
     if (this.worldCenterPos.x + this.radius > width) {
       this.worldCenterPos.x = width - this.radius;
-      this.velocity.x *= -bounciness;
+      this.velocity.x *= -sideBounciness;
     }
   }
 }
