@@ -1,77 +1,90 @@
 class SpaceBiome extends Biome {
+  layersBG = []; // Parallax layers for the background
+
   spirals = 75; // Number of spiral arms
-  spacingMult = 2; // Multiplier for spacing between spirals
+  spacingMult = 1.5; // Multiplier for spacing between spirals
   starDensity = 100; // Number of stars per spiral
   showOrbits = false; // Show orbit paths
-  stars = []; // Array of random angles for stars
-  spiralSpacing = 0; // Spacing between spiral arms
-  ratio = 0; // Ratio for spiral tightness
-  angle = 0; // Rotation angle for spirals
-  time = 0; // Time for animation. Drives rotation of stars around the galaxy
-  morphTime = 0; // Time for morphing. Drives the shape morphing by affecting the ratio and angle
-  nebulae = []; // Array to hold nebula properties
   cullPadding = 5; // Extra padding for culling stars outside the screen (without padding, some partially visible stars at the edges can be culled)
+  galaxyParallaxScale = 1; // Parallax scale for the galaxy layer
+  nebulaeParallaxScale = 0.5; // Parallax scale for the nebulae layer
+  numNebulae = 30; // Number of nebulae in the background
   earthEmoji = ""; // Emoji to represent Earth in the biome
   earthEmojis = ["🌍", "🌎", "🌏"];
 
   // Background asteroids
   asteroidsBG = []; // Array of asteroids
   asteroidDelayBG = 0; // Spawning delay
-  minAsteroidDelayBG = 5; // Minimum spawning delay
-  maxAsteroidDelayBG = 10; // Maximum spawning delay
+  minAsteroidDelayBG = 4; // Minimum spawning delay
+  maxAsteroidDelayBG = 8; // Maximum spawning delay
   minAsteroidRadiusBG = 5; // Minimum radius
 
   // Foreground asteroids
   asteroidsFG = []; // Array of asteroids
   asteroidDelayFG = 0; // Spawning delay
-  minAsteroidDelayFG = 5; // Minimum spawning delay
-  maxAsteroidDelayFG = 10; // Maximum spawning delay
+  minAsteroidDelayFG = 4; // Minimum spawning delay
+  maxAsteroidDelayFG = 6; // Maximum spawning delay
   minAsteroidRadiusFG = 5; // Minimum radius
 
   childAsteroidSpeedMult = 0.5; // Multiplier for child asteroid speed compared to parent asteroid
   childAsteroidSpreadProp = 0.5; // Controls the spread of child asteroids (between 0 and 1), where 0 means all children have the same velocity
-  beltHeight = 1000; // Height taken up by the asteroid belt
+  beltHeight = 1500; // Height taken up by the asteroid belt
+
+  originalMaxVelocity = 0;
+  slowZoneDistance = 1000; // Distance from the biome center where the player starts slowing down
+  slowZoneCenter = 200; // Distance from the biome center where the player is at the slowest
+  slowMaxVelocity = 0.4;
 
   constructor(worldStartY) {
     super(
       worldStartY,
-      6000, // biomeHeight
+      7000, // biomeHeight
       0, // startOverlapHeight
       0, // startHeight
       0, // endHeight
-      0.1, // gravity
+      0.05, // gravity
       3 // maxVelocity
     );
 
+    this.originalMaxVelocity = this.maxVelocity;
+    this.biomeWorldCenterY = this.worldStartY + this.biomeHeight / 2 - height / 4; // Center the slow zone around the middle of the biome, slightly shifted up to account for the ball's offset
+
+    let nebulaLayer = new ParallaxLayer(this.nebulaeParallaxScale, this.biomeHeight);
+    for (let i = 0; i < this.numNebulae; i++) {
+      nebulaLayer.content.push(new Nebula(nebulaLayer.layerHeight, this.startHeight, this.endHeight));
+    }
+    this.layersBG.push(nebulaLayer);
+
+    let galaxyLayer = new ParallaxLayer(this.galaxyParallaxScale, this.biomeHeight);
+    let galaxy = new Galaxy(
+      this.spirals,
+      this.spacingMult,
+      this.starDensity,
+      this.showOrbits,
+      galaxyLayer.layerHeight,
+      this.biomeHeight,
+      this.startHeight,
+      this.endHeight,
+      this.cullPadding
+    );
+    galaxyLayer.content.push(galaxy);
+    this.layersBG.push(galaxyLayer);
+
     this.earthEmoji = random(this.earthEmojis);
-    this.time = random(TWO_PI);
-    this.morphTime = random(1000);
-    this.spiralSpacing = (height * this.spacingMult) / this.spirals;
-
-    // Generate random angles for stars in each spiral
-    for (let spiral = 0; spiral < this.spirals; spiral++) {
-      for (let star = 0; star < this.starDensity; star++) {
-        this.stars.push(random(TWO_PI));
-      }
-    }
-
-    for (let i = 0; i < 25; i++) {
-      let h = random(200, 280);
-      let s = random(70, 100);
-      let b = random(30, 50);
-
-      let p5Color = color(h, s, b, 0.2);
-
-      this.nebulae.push({
-        x: random(-width / 2, width / 2),
-        y: random(-(this.biomeHeight - this.startHeight) / 2, (this.biomeHeight - this.startHeight) / 2),
-        radius: random(0.35 * width, 0.75 * width),
-        color: p5Color.toString(),
-      });
-    }
   }
 
   update(ball) {
+    let distFromCenter = abs(ball.worldCenterPos.y - this.biomeWorldCenterY);
+
+    if (distFromCenter < this.slowZoneCenter) {
+      this.maxVelocity = this.slowMaxVelocity;
+    } else if (distFromCenter < this.slowZoneDistance) {
+      let t = (distFromCenter - this.slowZoneCenter) / (this.slowZoneDistance - this.slowZoneCenter);
+      this.maxVelocity = lerp(this.slowMaxVelocity, this.originalMaxVelocity, t);
+    } else {
+      this.maxVelocity = this.originalMaxVelocity;
+    }
+
     this.asteroidsBG = this.updateAsteroids(true, this.asteroidsBG, this.minAsteroidRadiusBG);
     this.asteroidsFG = this.updateAsteroids(false, this.asteroidsFG, this.minAsteroidRadiusFG);
     this.asteroidDelayBG--;
@@ -125,9 +138,17 @@ class SpaceBiome extends Biome {
         baseVelocity.y *= this.childAsteroidSpeedMult * (1 - this.childAsteroidSpreadProp);
         let creationGap = max(asteroid.radius, other.radius) * 1.1;
 
-        const { directions, params } = this.calculateChildrenParams(minAsteroidRadius, intersection, creationGap, asteroid, other);
+        const { directions, params } = this.calculateChildrenParams(
+          minAsteroidRadius,
+          intersection,
+          creationGap,
+          asteroid,
+          other
+        );
 
-        newAsteroids = newAsteroids.concat(this.createChildrenAsteroids(isBackground, directions, params, baseVelocity));
+        newAsteroids = newAsteroids.concat(
+          this.createChildrenAsteroids(isBackground, directions, params, baseVelocity)
+        );
         break;
       }
     }
@@ -142,95 +163,9 @@ class SpaceBiome extends Biome {
     fill(240, 50, 4);
     noStroke();
     rect(0, topY, width, this.biomeHeight);
-    translate(width / 2, this.biomeHeight / 2 + topY);
-
-    for (let n of this.nebulae) {
-      drawingContext.save(); // Isolate the native canvas state
-
-      let grad = drawingContext.createRadialGradient(n.x, n.y, 0, n.x, n.y, n.radius);
-      grad.addColorStop(0, n.color);
-      grad.addColorStop(1, "rgba(0,0,0,0)");
-
-      drawingContext.fillStyle = grad;
-      // Draw the rectangle centered on the nebula's position
-      drawingContext.fillRect(n.x - n.radius, n.y - n.radius, n.radius * 2, n.radius * 2);
-
-      drawingContext.restore();
-    }
-
-    this.time += 2 * PI * 0.001;
-    this.morphTime += 0.005;
-
-    this.ratio = map(sin(this.morphTime), -1, 1, 0.5, 2.0);
-    this.angle = map(cos(this.morphTime * 0.5), -1, 1, 0, PI / 4);
-    noFill();
-
-    // Draw spirals
-    let cumulativeAngle = 0;
-    for (let spiral = 0; spiral < this.spirals; spiral++) {
-      cumulativeAngle += this.angle;
-      let cosAngle = cos(cumulativeAngle);
-      let sinAngle = sin(cumulativeAngle);
-
-      if (this.showOrbits) {
-        push();
-        rotate(cumulativeAngle);
-        stroke(255, 50);
-        strokeWeight(0.4);
-        ellipse(0, 0, this.ratio * this.spiralSpacing * spiral, this.spiralSpacing * spiral);
-        pop();
-      }
-
-      let distFraction = spiral / this.spirals;
-      let h, s, b;
-      let fadeToWhiteProportion = 0.3;
-      if (distFraction < fadeToWhiteProportion) {
-        h = 230;
-        s = lerp(0, 100, distFraction / fadeToWhiteProportion);
-        b = 100;
-      } else {
-        h = lerp(230, 280, (distFraction - fadeToWhiteProportion) / (1 - fadeToWhiteProportion));
-        s = 100;
-        b = 100;
-      }
-
-      let starColor = color(h, s, b);
-      stroke(starColor);
-
-      let minStroke = max(1, width / 500);
-      strokeWeight(map(spiral, 0, this.spirals, minStroke, 4 * minStroke));
-
-      // Draw stars for this spiral
-      for (let star = 0; star < this.starDensity; star++) {
-        let starAngle = this.stars[spiral * this.starDensity + star] + this.time;
-        let x = (this.ratio * this.spiralSpacing * spiral * cos(starAngle)) / 2;
-        let y = (this.spiralSpacing * spiral * sin(starAngle)) / 2;
-
-        // Rotate by the cumulative angle
-        let localX = x * cosAngle - y * sinAngle;
-        let localY = x * sinAngle + y * cosAngle;
-        let screenY = localY + (this.biomeHeight / 2 + topY);
-
-        // Skip if the star isn't on screen
-        if (
-          localX < -width / 2 - this.cullPadding ||
-          localX > width / 2 + this.cullPadding ||
-          screenY < -this.cullPadding ||
-          screenY > height + this.cullPadding
-        )
-          continue;
-
-        // Skip if the start isn't in the biome's range
-        if (
-          localY < -this.biomeHeight / 2 + this.startHeight - this.cullPadding ||
-          localY > this.biomeHeight / 2 - this.endHeight + this.cullPadding
-        )
-          continue;
-
-        point(localX, localY);
-      }
-    }
     pop();
+
+    this.layersBG.forEach((layer) => layer.draw(topY));
 
     for (let asteroid of this.asteroidsBG) {
       asteroid.draw(topY);
@@ -322,7 +257,16 @@ class SpaceBiome extends Biome {
 }
 
 class Asteroid {
-  constructor(biomeHeight, startHeight, endHeight, beltHeight, isBackground, radius = null, position = null, velocity = null) {
+  constructor(
+    biomeHeight,
+    startHeight,
+    endHeight,
+    beltHeight,
+    isBackground,
+    radius = null,
+    position = null,
+    velocity = null
+  ) {
     this.biomeHeight = biomeHeight;
     this.startHeight = startHeight;
     this.endHeight = endHeight;
@@ -356,8 +300,8 @@ class Asteroid {
         this.position = createVector(width + this.radius, random(biomeHeight - beltHeight, biomeHeight));
         this.velocity = createVector(random(-2, -1), random(-0.5, 0.5));
       }
-
-    } else { // Foreground
+    } else {
+      // Foreground
       this.color = color(230, 5, random(30, 55));
       if (!radius) this.radius = random(15, 30);
 
@@ -380,15 +324,23 @@ class Asteroid {
       this.offset[i] = random(-this.radius * 0.5, this.radius * 0.5);
     }
 
+    let h = hue(this.color);
+    let s = saturation(this.color);
+    let b = brightness(this.color);
+    this.highlightColor = color(h, s * 0.8, b + 15);
+
+    this.craterHighlight = color(h, s, b + 5);
+
     // Craters
     this.craters = [];
     let numCraters = floor(random(3, 6));
     for (let i = 0; i < numCraters; i++) {
+      let brightnessOffset = random(-5, -15);
       this.craters.push({
         x: random(-this.radius * 0.3, this.radius * 0.3),
         y: random(-this.radius * 0.3, this.radius * 0.3),
         size: random(this.radius * 0.1, this.radius * 0.2),
-        brightnessOffset: random(-5, -15)
+        color: color(h, s, b + brightnessOffset),
       });
     }
   }
@@ -410,10 +362,7 @@ class Asteroid {
 
     // Highlight (the lit side)
     push();
-    let newH = hue(this.color);
-    let newS = saturation(this.color);
-    let newB = brightness(this.color);
-    fill(newH, newS * 0.8, newB + 15);
+    fill(this.highlightColor);
     translate(-this.radius * 0.1, -this.radius * 0.1);
     scale(0.8);
     this.drawAsteroidShape();
@@ -421,12 +370,12 @@ class Asteroid {
 
     // Draw craters
     for (let crater of this.craters) {
-      fill(newH, newS, newB + crater.brightnessOffset);
+      fill(crater.color);
       ellipse(crater.x, crater.y, crater.size, crater.size * 0.8);
 
       // Highlight on the crater
       noFill();
-      stroke(newH, newS, newB + 5);
+      stroke(this.craterHighlight);
       strokeWeight(1);
       arc(crater.x, crater.y, crater.size, crater.size * 0.8, PI, TWO_PI);
     }
@@ -460,7 +409,183 @@ class Asteroid {
   }
 
   isAsteroidHit(asteroid) {
-    var d = dist(this.position.x, this.position.y, asteroid.position.x, asteroid.position.y);
-    return d < asteroid.radius + this.radius;
+    let dx = this.position.x - asteroid.position.x;
+    let dy = this.position.y - asteroid.position.y;
+    let distanceSq = dx * dx + dy * dy;
+    let radiusSum = this.radius + asteroid.radius;
+    return distanceSq < radiusSum * radiusSum;
+  }
+}
+
+class Galaxy {
+  constructor(
+    spirals,
+    spacingMult,
+    starDensity,
+    showOrbits,
+    layerHeight,
+    biomeHeight,
+    startHeight,
+    endHeight,
+    cullPadding
+  ) {
+    this.spirals = spirals;
+    this.spacingMult = spacingMult;
+    this.starDensity = starDensity;
+    this.showOrbits = showOrbits;
+    this.layerHeight = layerHeight;
+    this.biomeHeight = biomeHeight;
+    this.startHeight = startHeight;
+    this.endHeight = endHeight;
+    this.cullPadding = cullPadding;
+
+    this.spiralSpacing = (height * this.spacingMult) / this.spirals; // Spacing between spiral arms
+    this.stars = []; // Array of random angles for stars
+
+    this.ratio = 0; // Ratio for spiral tightness
+    this.angle = 0; // Rotation angle for spirals
+    this.time = random(TWO_PI); // Time for animation. Drives rotation of stars around the galaxy
+    this.morphTime = random(1000); // Time for morphing. Drives the shape morphing by affecting the ratio and angle
+
+    // Generate random angles for stars in each spiral
+    for (let spiral = 0; spiral < this.spirals; spiral++) {
+      for (let star = 0; star < this.starDensity; star++) {
+        this.stars.push(random(TWO_PI));
+      }
+    }
+
+    this.generateSpiralStyles();
+  }
+
+  draw(topY, scaledTopY) {
+    push();
+
+    noFill();
+
+    let scaledMidY = scaledTopY + this.layerHeight / 2;
+    let leftCullEdge = -width / 2 - this.cullPadding;
+    let rightCullEdge = width / 2 + this.cullPadding;
+    let topCullEdge = -this.cullPadding;
+    let bottomCullEdge = height + this.cullPadding;
+    let startCullEdge = topY + this.startHeight - this.cullPadding;
+    let endCullEdge = topY + this.biomeHeight - this.endHeight + this.cullPadding;
+
+    translate(width / 2, scaledMidY);
+
+    this.time += 2 * PI * 0.001;
+    this.morphTime += 0.005;
+
+    this.ratio = map(sin(this.morphTime), -1, 1, 0.5, 2.0);
+    this.angle = map(cos(this.morphTime * 0.5), -1, 1, 0, PI / 4);
+
+    // Draw spirals
+    let cumulativeAngle = 0;
+    for (let spiral = 0; spiral < this.spirals; spiral++) {
+      cumulativeAngle += this.angle;
+      let cosAngle = cos(cumulativeAngle);
+      let sinAngle = sin(cumulativeAngle);
+
+      if (this.showOrbits) {
+        push();
+        rotate(cumulativeAngle);
+        stroke(255, 50);
+        strokeWeight(0.4);
+        ellipse(0, 0, this.ratio * this.spiralSpacing * spiral, this.spiralSpacing * spiral);
+        pop();
+      }
+
+      const style = this.spiralStyles[spiral];
+      stroke(style.color);
+      strokeWeight(style.weight);
+
+      let starOffset = spiral * this.starDensity;
+      let spiralRadiusRatio = this.ratio * this.spiralSpacing * spiral;
+      let spiralRadius = this.spiralSpacing * spiral;
+
+      // Draw stars for this spiral
+      for (let star = 0; star < this.starDensity; star++) {
+        let starAngle = this.stars[starOffset + star] + this.time;
+        let x = (spiralRadiusRatio * cos(starAngle)) / 2;
+        let y = (spiralRadius * sin(starAngle)) / 2;
+
+        // Rotate by the cumulative angle
+        let localX = x * cosAngle - y * sinAngle;
+        let localY = x * sinAngle + y * cosAngle;
+        let screenY = localY + scaledMidY;
+
+        // Skip if the star isn't on screen
+        if (localX < leftCullEdge || localX > rightCullEdge || screenY < topCullEdge || screenY > bottomCullEdge)
+          continue;
+
+        // Skip if the start isn't in the biome's range
+        if (screenY < startCullEdge || screenY > endCullEdge) continue;
+
+        point(localX, localY);
+      }
+    }
+
+    pop();
+  }
+
+  generateSpiralStyles() {
+    this.spiralStyles = [];
+    let minStroke = max(1, width / 500);
+
+    for (let spiral = 0; spiral < this.spirals; spiral++) {
+      let distFraction = spiral / this.spirals;
+      let h, s, b;
+      let fadeToWhiteProportion = 0.3;
+
+      if (distFraction < fadeToWhiteProportion) {
+        h = 230;
+        s = lerp(0, 100, distFraction / fadeToWhiteProportion);
+        b = 100;
+      } else {
+        h = lerp(230, 280, (distFraction - fadeToWhiteProportion) / (1 - fadeToWhiteProportion));
+        s = 100;
+        b = 100;
+      }
+
+      let weight = map(spiral, 0, this.spirals, minStroke, 4 * minStroke);
+
+      this.spiralStyles[spiral] = {
+        color: color(h, s, b),
+        weight: weight,
+      };
+    }
+  }
+}
+
+class Nebula {
+  constructor(layerHeight, startHeight, endHeight) {
+    let h = random(200, 280);
+    let s = random(70, 100);
+    let b = random(40, 60);
+    let p5Color = color(h, s, b, 0.2);
+
+    this.centerX = random(width);
+    this.centerY = random(startHeight, layerHeight - startHeight - endHeight);
+    this.radius = random(0.35 * width, 0.75 * width);
+    this.color = p5Color.toString();
+  }
+
+  draw(topY, scaledTopY) {
+    const screenY = scaledTopY + this.centerY;
+    if (screenY + this.radius < 0 || screenY - this.radius > height) return;
+
+    push();
+    drawingContext.save(); // Isolate the native canvas state
+
+    let grad = drawingContext.createRadialGradient(this.centerX, screenY, 0, this.centerX, screenY, this.radius);
+    grad.addColorStop(0, this.color);
+    grad.addColorStop(1, "rgba(0,0,0,0)");
+
+    drawingContext.fillStyle = grad;
+    // Draw the rectangle centered on the nebula's position
+    drawingContext.fillRect(this.centerX - this.radius, screenY - this.radius, this.radius * 2, this.radius * 2);
+
+    drawingContext.restore();
+
+    pop();
   }
 }

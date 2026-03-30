@@ -1,9 +1,9 @@
 class ParallaxLayer {
   constructor(scale, biomeHeight, content = []) {
     this.scale = scale;
-    this.spawnHeight = biomeHeight * abs(scale) + height * abs(1 - abs(scale)); // Calculates the necessary coverage to cover the full range of the biome, including all its scroll positions on the screen
+    this.layerHeight = biomeHeight * abs(scale) + height * abs(1 - abs(scale)); // Calculates the necessary coverage to cover the full range of the biome, including all its scroll positions on the screen
     this.biomeHeight = biomeHeight;
-    this.content = content; // List of shapes with a draw() method
+    this.content = content; // List of shapes with a draw(topY, scaledTopY) method
   }
 
   scaleTopY(topY) {
@@ -12,7 +12,7 @@ class ParallaxLayer {
     let scaledDistance = distanceFromCenter * this.scale; // Scale that distance based on the layer's parallax scale
 
     let scaledMiddleY = screenCenter + scaledDistance; // Get the new middle for the layer based on the scaled distance
-    return scaledMiddleY - this.spawnHeight / 2; // Adjust to the top
+    return scaledMiddleY - this.layerHeight / 2; // Adjust to the top
   }
 
   draw(topY) {

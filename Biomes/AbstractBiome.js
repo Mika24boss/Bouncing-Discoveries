@@ -76,7 +76,7 @@ class AbstractBiome extends Biome {
 
       let numberOfShapes = this.biomeHeight * style.density;
       for (let i = 0; i < numberOfShapes; i++) {
-        let newShape = new DecorativeRectangle(this, parallaxLayer, style);
+        let newShape = new DecorativeRectangle(this, parallaxLayer.layerHeight, style);
         parallaxLayer.content.push(newShape);
       }
       if (style.isBackground) this.layersBG.push(parallaxLayer);
@@ -157,9 +157,9 @@ class RectangleStyle {
 }
 
 class DecorativeRectangle {
-  constructor(biome, parallaxLayer, style) {
+  constructor(biome, layerHeight, style) {
     this.localCenterX = random() * width;
-    this.localCenterY = random() * parallaxLayer.spawnHeight;
+    this.localCenterY = random() * layerHeight;
 
     this.hw = random() * (style.maxHW - style.minHW) + style.minHW;
     this.hh = random() * (style.maxHH - style.minHH) + style.minHH;

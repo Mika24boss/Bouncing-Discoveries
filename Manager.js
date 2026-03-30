@@ -5,7 +5,7 @@ class Manager {
   currentBiome = null;
 
   constructor() {
-    const biomes = [SpaceBiome, MatrixBiome, AbstractBiome];
+    const biomes = [AbstractBiome, MatrixBiome, SpaceBiome];
     let currentWorldY = 0;
 
     for (let BiomeClass of biomes) {
@@ -20,6 +20,8 @@ class Manager {
   update() {
     this.currentBiome = null;
     for (let biome of this.biomes) {
+      if (!biome.isOnScreen(biome.worldStartY - this.cameraWorldY)) continue;
+
       biome.update(this.ball);
 
       if (!this.currentBiome && this.ball.worldCenterPos.y <= biome.worldStartY + biome.biomeHeight) {
