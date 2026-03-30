@@ -29,7 +29,7 @@ function draw() {
 }
 
 function keyPressed() {
-  let force = 15;
+  let force = 10;
   switch (keyCode) {
     case 32: // Space key
       paused = !paused;

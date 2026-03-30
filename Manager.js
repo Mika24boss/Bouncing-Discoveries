@@ -5,7 +5,7 @@ class Manager {
   currentBiome = null;
 
   constructor() {
-    const biomes = [AbstractBiome, MatrixBiome, SpaceBiome];
+    const biomes = [MatrixBiome, AbstractBiome, SpaceBiome];
     let currentWorldY = 0;
 
     for (let BiomeClass of biomes) {
@@ -56,6 +56,7 @@ class Manager {
   }
 
   pushBall(x, y) {
-    this.ball.applyForce(x, y);
+    this.ball.velocity.x = x;
+    this.ball.velocity.y = y;
   }
 }

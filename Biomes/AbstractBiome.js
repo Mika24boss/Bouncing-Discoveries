@@ -8,7 +8,7 @@ class AbstractBiome extends Biome {
       maxHW: 20,
       minHH: 10,
       maxHH: 20,
-      density: 0.01,
+      density: 0.1,
     }),
     new RectangleStyle({
       parallaxScale: 0.6,
@@ -18,7 +18,7 @@ class AbstractBiome extends Biome {
       maxHW: 30,
       minHH: 30,
       maxHH: 50,
-      density: 0.005,
+      density: 0.05,
     }),
     new RectangleStyle({
       parallaxScale: 0.8,
@@ -28,7 +28,7 @@ class AbstractBiome extends Biome {
       maxHW: 70,
       minHH: 20,
       maxHH: 30,
-      density: 0.01,
+      density: 0.1,
     }),
     new RectangleStyle({
       parallaxScale: 2,
@@ -38,7 +38,7 @@ class AbstractBiome extends Biome {
       maxHW: 150,
       minHH: 50,
       maxHH: 150,
-      density: 0.005,
+      density: 0.05,
     }),
   ];
 
@@ -51,7 +51,7 @@ class AbstractBiome extends Biome {
       maxHW: 80,
       minHH: 40,
       maxHH: 80,
-      density: 0.008,
+      density: 0.04,
     }),
   ];
 
@@ -74,7 +74,7 @@ class AbstractBiome extends Biome {
       let scale = style.parallaxScale;
       let parallaxLayer = new ParallaxLayer(scale, this.biomeHeight);
 
-      let numberOfShapes = this.biomeHeight * style.density;
+      let numberOfShapes = width * style.density;
       for (let i = 0; i < numberOfShapes; i++) {
         let newShape = new DecorativeRectangle(this, parallaxLayer.layerHeight, style);
         parallaxLayer.content.push(newShape);
@@ -84,7 +84,7 @@ class AbstractBiome extends Biome {
     }
 
     for (let style of this.interactiveStyles) {
-      let numberOfShapes = this.biomeHeight * style.density;
+      let numberOfShapes = width * style.density;
       for (let i = 0; i < numberOfShapes; i++) {
         let newShape = new InteractiveRectangle(this, style);
         this.interactiveShapes.push(newShape);
