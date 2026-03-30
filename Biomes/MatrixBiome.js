@@ -60,6 +60,7 @@ class MatrixBiome extends Biome {
       }
       startY += this.textBlockHeight;
     }
+    pop()
 
     // Static horizontal lines
     push();
@@ -79,15 +80,12 @@ class MatrixBiome extends Biome {
     // Darker shadow bar right behind it
     fill(0, 0, 0, 0.1);
     rect(0, topY + scanlineY - 100, width, 50);
-    pop();
 
     scanlineY = (frameCount * 8 + this.biomeHeight / 2) % this.biomeHeight;
     fill(136, 100, 50, 0.25);
     rect(0, topY + scanlineY, width, 100);
     fill(0, 0, 0, 0.1);
     rect(0, topY + scanlineY - 100, width, 50);
-    pop();
-
     pop();
   }
 
