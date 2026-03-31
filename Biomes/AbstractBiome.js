@@ -76,7 +76,7 @@ class AbstractBiome extends Biome {
 
       let numberOfShapes = width * style.density;
       for (let i = 0; i < numberOfShapes; i++) {
-        let newShape = new DecorativeRectangle(this, parallaxLayer.layerHeight, style);
+        let newShape = new DecorativeRectangle(this.biomeHeight, parallaxLayer.layerHeight, style);
         parallaxLayer.content.push(newShape);
       }
       if (style.isBackground) this.layersBG.push(parallaxLayer);
@@ -86,7 +86,7 @@ class AbstractBiome extends Biome {
     for (let style of this.interactiveStyles) {
       let numberOfShapes = width * style.density;
       for (let i = 0; i < numberOfShapes; i++) {
-        let newShape = new InteractiveRectangle(this, style);
+        let newShape = new InteractiveRectangle(this.biomeHeight, this.worldStartY, style);
         this.interactiveShapes.push(newShape);
       }
     }

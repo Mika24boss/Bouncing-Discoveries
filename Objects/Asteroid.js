@@ -1,8 +1,6 @@
 class Asteroid {
   constructor(
     biomeHeight,
-    startHeight,
-    endHeight,
     beltHeight,
     isBackground,
     radius = null,
@@ -10,8 +8,6 @@ class Asteroid {
     velocity = null
   ) {
     this.biomeHeight = biomeHeight;
-    this.startHeight = startHeight;
-    this.endHeight = endHeight;
     this.toDelete = false;
     this.rotationSpeed = random(-0.01, 0.01);
     this.rotation = 0;
@@ -50,12 +46,12 @@ class Asteroid {
       // Left spawn
       if (positionRndNumber > -1 && positionRndNumber < 0.5) {
         this.position = createVector(-this.radius, random(0, beltHeight));
-        this.velocity = createVector(random(3, 6), random(-3, 3));
+        this.velocity = createVector(random(3, 5), random(-2.5, 2.5));
       }
       // Right spawn
       else if (positionRndNumber > -1) {
         this.position = createVector(width + this.radius, random(biomeHeight - beltHeight, biomeHeight));
-        this.velocity = createVector(random(-6, -3), random(-3, 3));
+        this.velocity = createVector(random(-5, -3), random(-2.5, 2.5));
       }
     }
 
@@ -139,9 +135,9 @@ class Asteroid {
 
   isOutsideBiome() {
     // Top
-    if (this.position.y + 2 * this.radius < this.startHeight) return true;
+    if (this.position.y + 2 * this.radius < 0) return true;
     // Bottom
-    if (this.position.y - 2 * this.radius > this.biomeHeight - this.endHeight) return true;
+    if (this.position.y - 2 * this.radius > this.biomeHeight) return true;
     // Left
     if (this.position.x + 2 * this.radius < 0) return true;
     // Right

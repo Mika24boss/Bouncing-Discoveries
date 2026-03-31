@@ -91,12 +91,12 @@ class SpaceBiome extends Biome {
     this.asteroidDelayFG--;
 
     if (this.asteroidDelayBG <= 0) {
-      this.asteroidsBG.push(new Asteroid(this.biomeHeight, this.startHeight, this.endHeight, this.beltHeight, true));
+      this.asteroidsBG.push(new Asteroid(this.biomeHeight, this.beltHeight, true));
       this.asteroidDelayBG = random(this.minAsteroidDelayBG, this.maxAsteroidDelayBG);
     }
 
     if (this.asteroidDelayFG <= 0) {
-      this.asteroidsFG.push(new Asteroid(this.biomeHeight, this.startHeight, this.endHeight, this.beltHeight, false));
+      this.asteroidsFG.push(new Asteroid(this.biomeHeight, this.beltHeight, false));
       this.asteroidDelayFG = random(this.minAsteroidDelayFG, this.maxAsteroidDelayFG);
     }
   }
@@ -241,8 +241,6 @@ class SpaceBiome extends Biome {
       newAsteroids.push(
         new Asteroid(
           this.biomeHeight,
-          this.startHeight,
-          this.endHeight,
           this.beltHeight,
           isBackground,
           param.radius,
