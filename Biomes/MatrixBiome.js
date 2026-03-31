@@ -8,6 +8,7 @@ class MatrixBiome extends Biome {
 
   ballCenterPos = createVector(0, 0);
   ballEffectRadius = 80;
+  ballEffectStrength = 50;
 
   constructor(worldStartY) {
     super(
@@ -50,9 +51,9 @@ class MatrixBiome extends Biome {
       let lineIdx = floor(random(this.wrappedLines.length));
       let charIdx = floor(random(this.wrappedLines[lineIdx].length));
       // Replace a character in the string
-      let chars = this.wrappedLines[lineIdx].split("");
-      chars[charIdx] = String.fromCharCode(0x30a0 + random(96)); // Katakana range
-      this.wrappedLines[lineIdx] = chars.join("");
+      let newChar = String.fromCharCode(0x30a0 + floor(random(96)));
+      let line = this.wrappedLines[lineIdx];
+      this.wrappedLines[lineIdx] = line.substring(0, charIdx) + newChar + line.substring(charIdx + 1);
     }
 
     // Draw the text block many times to fill the screen
@@ -92,7 +93,7 @@ class MatrixBiome extends Biome {
         let charX = currentX + charWidth / 2;
         let charY = midLineY;
         let d = dist(charX, charY, this.ballCenterPos.x, this.ballCenterPos.y + topY);
-        let force = map(d, 0, this.ballEffectRadius, 50, 0); // Stronger when closer
+        let force = map(d, 0, this.ballEffectRadius, this.ballEffectStrength, 0); // Stronger when closer
         charX += ((charX - this.ballCenterPos.x) / d) * force;
         charY += ((charY - this.ballCenterPos.y - topY) / d) * force;
         text(char, charX - charWidth / 2, charY + this.fontSize / 2);
