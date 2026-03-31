@@ -6,22 +6,30 @@ class MatrixBiome extends Biome {
   fontSize = 18;
   gapLine = 25;
 
+  ballCenterPos = createVector(0, 0);
+  ballEffectRadius = 80;
+
   constructor(worldStartY) {
     super(
       worldStartY,
-      5000, // biomeHeight
+      4000, // biomeHeight
       50, // startOverlapHeight
-      200, // startHeight
-      200, // endHeight
+      100, // startHeight
+      100, // endHeight
       0.5, // gravity
-      3 // maxVelocity
+      4 // maxVelocity
     );
 
     this.codeString = MatrixBiome.codeString;
     let { wrappedLines, textBlockHeight } = this.wrapCharacters();
     this.wrappedLines = wrappedLines;
     this.textBlockHeight = textBlockHeight;
+    this.linesPerScreen = ceil(height / this.gapLine) + 1;
     this.ballEmoji = random(this.ballEmojis);
+  }
+
+  update(ball) {
+    this.ballCenterPos = ball.worldCenterPos.copy().sub(0, this.worldStartY);
   }
 
   drawBodyBG(topY) {
@@ -42,31 +50,68 @@ class MatrixBiome extends Biome {
       let lineIdx = floor(random(this.wrappedLines.length));
       let charIdx = floor(random(this.wrappedLines[lineIdx].length));
       // Replace a character in the string
-      let chars = this.wrappedLines[lineIdx].split('');
-      chars[charIdx] = String.fromCharCode(0x30A0 + random(96)); // Katakana range
-      this.wrappedLines[lineIdx] = chars.join('');
+      let chars = this.wrappedLines[lineIdx].split("");
+      chars[charIdx] = String.fromCharCode(0x30a0 + random(96)); // Katakana range
+      this.wrappedLines[lineIdx] = chars.join("");
     }
 
-    // Draw the text block many times
-    let startY = topY + this.startHeight;
-    while (startY < topY + this.biomeHeight) {
-      for (let i = 0; i < this.wrappedLines.length; i++) {
-        let lineY = startY + i * this.gapLine;
+    // Draw the text block many times to fill the screen
+    let nbLinesAboveScreen = topY < 0 ? floor(-topY / this.gapLine) : 0;
+    let firstY = topY + this.gapLine * (nbLinesAboveScreen + 1);
 
-        // Only draw lines that are actually visible on screen
-        if (lineY + this.gapLine > 0 && lineY <= topY + this.biomeHeight) {
-          text(this.wrappedLines[i], 0, lineY);
-        }
+    for (let lineIndex = 0; lineIndex < this.linesPerScreen; lineIndex++) {
+      let bottomLineY = firstY + lineIndex * this.gapLine;
+      let midLineY = bottomLineY - this.fontSize / 2;
+
+      let textBlockIndex = (nbLinesAboveScreen + lineIndex) % this.wrappedLines.length;
+      let lineText = this.wrappedLines[textBlockIndex];
+
+      // Print the text normally if the ball isn't near this line
+      if (
+        midLineY < this.ballCenterPos.y + topY - this.ballEffectRadius ||
+        midLineY > this.ballCenterPos.y + topY + this.ballEffectRadius
+      ) {
+        text(lineText, 0, bottomLineY);
+        continue;
       }
-      startY += this.textBlockHeight;
-    }
-    pop()
 
+      // Find the characters affected by the ball
+      let { firstCharIndex, lastCharIndex } = this.findCharsNearBall(topY, lineText, midLineY);
+
+      // Print the text before firstchar normally, then the affected chars with the wave effect, then the text after lastchar normally
+      let beforeText = lineText.substring(0, firstCharIndex);
+      let afterText = lineText.substring(lastCharIndex + 1);
+      let affectedText = lineText.substring(firstCharIndex, lastCharIndex + 1);
+      text(beforeText, 0, bottomLineY);
+      let currentX = textWidth(beforeText);
+      fill(136, 50, 100); // Bright green
+
+      for (let i = 0; i < affectedText.length; i++) {
+        let char = affectedText[i];
+        let charWidth = textWidth(char);
+        let charX = currentX + charWidth / 2;
+        let charY = midLineY;
+        let d = dist(charX, charY, this.ballCenterPos.x, this.ballCenterPos.y + topY);
+        let force = map(d, 0, this.ballEffectRadius, 50, 0); // Stronger when closer
+        charX += ((charX - this.ballCenterPos.x) / d) * force;
+        charY += ((charY - this.ballCenterPos.y - topY) / d) * force;
+        text(char, charX - charWidth / 2, charY + this.fontSize / 2);
+        currentX += charWidth;
+      }
+
+      fill(136, 100, 78); // Normal matrix green
+      text(afterText, currentX, bottomLineY);
+    }
+
+    pop();
+  }
+
+  drawBodyFG(topY) {
     // Static horizontal lines
     push();
-    stroke(0, 0, 100, 0.3);
-    strokeWeight(1);
-    for (let y = 0; y < this.biomeHeight; y += 3) {
+    stroke(0, 0, 100, 0.4);
+    strokeWeight(2);
+    for (let y = 0; y < this.biomeHeight; y += 6) {
       line(0, topY + y, width, topY + y);
     }
 
@@ -89,12 +134,18 @@ class MatrixBiome extends Biome {
     pop();
   }
 
-  drawStartBG(topY) {
-    this.drawSectionShape(topY, this.startHeight, true);
+  drawStartFG(topY) {
+    push();
+    fill(150, 100, 30);
+    rect(0, topY - this.startOverlapHeight, width, this.startHeight + this.startOverlapHeight);
+    pop();
   }
 
-  drawEndBG(topY) {
-    this.drawSectionShape(topY, this.endHeight, false);
+  drawEndFG(topY) {
+    push();
+    fill(150, 100, 30);
+    rect(0, topY + this.biomeHeight - this.endHeight, width, this.endHeight);
+    pop();
   }
 
   drawBall(screenX, screenY, radius) {
@@ -105,28 +156,14 @@ class MatrixBiome extends Biome {
     pop();
   }
 
-  drawSectionShape(topY, sectionHeight, isStart) {
-    fill(150, 100, 30, 100);
-    noStroke();
-    beginShape();
-    if (isStart) {
-      vertex(0, topY - this.startOverlapHeight);
-      vertex(width, topY);
-      vertex(width, topY + sectionHeight);
-      vertex(0, topY + sectionHeight);
-    } else {
-      const endTopY = topY + this.biomeHeight - this.endHeight;
-      vertex(0, endTopY);
-      vertex(width, endTopY + sectionHeight / 2);
-      vertex(width, endTopY + sectionHeight);
-      vertex(0, endTopY + sectionHeight);
-    }
-    endShape(CLOSE);
-  }
-
   wrapCharacters() {
     let wrappedLines = [];
     let currentLine = "";
+
+    push();
+    textFont("Courier");
+    textSize(this.fontSize);
+    textStyle(BOLD);
 
     for (let i = 0; i < this.codeString.length; i++) {
       let char = this.codeString[i];
@@ -151,11 +188,101 @@ class MatrixBiome extends Biome {
       }
       wrappedLines.push(currentLine);
     }
+    pop();
 
     let textBlockHeight = wrappedLines.length * this.gapLine;
     return {
       wrappedLines,
       textBlockHeight,
     };
+  }
+
+  findCharsNearBall(topY, lineText, midLineY) {
+    // Most characters have the same width in Courier, so we can use the ball's position to estimate the affected characters
+    let goodGuess = floor((this.ballCenterPos.x / width) * lineText.length);
+    let nearBall = this.isCharNearBall(topY, goodGuess, lineText, midLineY);
+
+    // Sequential search isn't ideal, but in our case, the ball won't be far for the guess, so it should be fine
+    if (nearBall) {
+      let lastCharIndex = this.searchCharNearBall(topY, lineText, midLineY, goodGuess + 1, "right");
+      let firstCharIndex = this.searchCharNearBall(topY, lineText, midLineY, goodGuess - 1, "left");
+
+      return {
+        firstCharIndex,
+        lastCharIndex,
+      };
+    }
+
+    // Didn't find a char near the ball at the good guess, so we need to search in both directions
+    // Try going right first since Katakana characters are often wider
+    let firstCharIndex = this.searchCharNearBall(
+      topY,
+      lineText,
+      midLineY,
+      goodGuess + 1,
+      "right",
+      "oh no, where da money at?"
+    );
+
+    if (firstCharIndex !== -1) {
+      // Found the first char near the ball, now find the last char
+      let lastCharIndex = this.searchCharNearBall(topY, lineText, midLineY, firstCharIndex + 1, "right");
+      return {
+        firstCharIndex,
+        lastCharIndex,
+      };
+    }
+
+    // Didn't find any chars near the ball going right, so try left
+    let lastCharIndex = this.searchCharNearBall(
+      topY,
+      lineText,
+      midLineY,
+      goodGuess - 1,
+      "left",
+      "oh no, where da money at?"
+    );
+
+    if (lastCharIndex !== -1) {
+      // Found the last char near the ball, now find the first char
+      let firstCharIndex = this.searchCharNearBall(topY, lineText, midLineY, lastCharIndex - 1, "left");
+      return {
+        firstCharIndex,
+        lastCharIndex,
+      };
+    }
+
+    // No chars near the ball in either direction, something went wrong
+    return {
+      firstCharIndex: -1,
+      lastCharIndex: -1,
+    };
+  }
+
+  isCharNearBall(topY, charIndex, lineText, midLineY) {
+    let charMiddleX = textWidth(lineText.substring(0, charIndex)) + textWidth(lineText[charIndex]) / 2;
+    let dx = this.ballCenterPos.x - charMiddleX;
+    let dy = this.ballCenterPos.y + topY - midLineY;
+    let distanceSq = dx * dx + dy * dy;
+    return distanceSq < this.ballEffectRadius * this.ballEffectRadius;
+  }
+
+  searchCharNearBall(topY, lineText, midLineY, startIndex, direction, goal = "where da money end?") {
+    if (startIndex < 0) {
+      return goal === "where da money end?" ? 0 : -1;
+    } else if (startIndex >= lineText.length) {
+      return goal === "where da money end?" ? lineText.length - 1 : -1;
+    }
+
+    let nearBall = this.isCharNearBall(topY, startIndex, lineText, midLineY);
+    let nextIndex = direction === "right" ? startIndex + 1 : startIndex - 1;
+
+    if (goal === "where da money end?") {
+      if (!nearBall) return direction === "right" ? startIndex - 1 : startIndex + 1;
+      else return this.searchCharNearBall(topY, lineText, midLineY, nextIndex, direction, goal);
+    } else {
+      if (nearBall) return startIndex;
+      else return this.searchCharNearBall(topY, lineText, midLineY, nextIndex, direction, goal);
+    }
   }
 }

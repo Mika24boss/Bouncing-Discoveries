@@ -33,7 +33,7 @@ class SpaceBiome extends Biome {
   originalMaxVelocity = 0;
   slowZoneDistance = 1000; // Distance from the biome center where the player starts slowing down
   slowZoneCenter = 200; // Distance from the biome center where the player is at the slowest
-  slowMaxVelocity = 10.4;
+  slowMaxVelocity = 0.4;
 
   // Static asteroids
   asteroidsStaticBG = [];
@@ -50,7 +50,7 @@ class SpaceBiome extends Biome {
       0, // startHeight
       0, // endHeight
       0.05, // gravity
-      10 // maxVelocity
+      3 // maxVelocity
     );
 
     this.originalMaxVelocity = this.maxVelocity;

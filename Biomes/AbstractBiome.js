@@ -67,7 +67,7 @@ class AbstractBiome extends Biome {
       100, // startHeight
       100, // endHeight
       0.3, // gravity
-      30 // maxVelocity
+      24 // maxVelocity
     );
 
     for (let style of this.decorativeStyles) {
