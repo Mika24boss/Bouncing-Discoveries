@@ -29,7 +29,7 @@ class MatrixBiome extends Biome {
     this.ballEmoji = random(this.ballEmojis);
   }
 
-  update(ball) {
+  update(ball, topY) {
     this.ballCenterPos = ball.worldCenterPos.copy().sub(0, this.worldStartY);
   }
 

@@ -1,6 +1,6 @@
 class AbstractBiome extends Biome {
   decorativeStyles = [
-    new RectangleStyle({
+    new DecorativeRectStyle({
       parallaxScale: 0.4,
       isBackground: true,
       color: color(0, 100, 60),
@@ -10,7 +10,7 @@ class AbstractBiome extends Biome {
       maxHH: 20,
       density: 0.1,
     }),
-    new RectangleStyle({
+    new DecorativeRectStyle({
       parallaxScale: 0.6,
       isBackground: true,
       color: color(30, 100, 80),
@@ -20,7 +20,7 @@ class AbstractBiome extends Biome {
       maxHH: 50,
       density: 0.05,
     }),
-    new RectangleStyle({
+    new DecorativeRectStyle({
       parallaxScale: 0.8,
       isBackground: true,
       color: color(60, 100, 100),
@@ -30,7 +30,7 @@ class AbstractBiome extends Biome {
       maxHH: 30,
       density: 0.1,
     }),
-    new RectangleStyle({
+    new DecorativeRectStyle({
       parallaxScale: 2,
       isBackground: false,
       color: color(0, 0, 100, 0.8),
@@ -43,10 +43,8 @@ class AbstractBiome extends Biome {
   ];
 
   interactiveStyles = [
-    new RectangleStyle({
-      parallaxScale: 1,
-      isBackground: true,
-      color: color(180, 100, 100),
+    new InteractiveRectStyle({
+      colors: [color(180, 100, 100), color(290, 100, 100), color(0, 100, 100), color(90, 100, 100)],
       minHW: 40,
       maxHW: 80,
       minHH: 40,
@@ -67,7 +65,7 @@ class AbstractBiome extends Biome {
       100, // startHeight
       100, // endHeight
       0.3, // gravity
-      24 // maxVelocity
+      20 // maxVelocity
     );
 
     for (let style of this.decorativeStyles) {
@@ -92,12 +90,12 @@ class AbstractBiome extends Biome {
     }
   }
 
-  update(ball) {
+  update(ball, topY) {
     for (let shape of this.interactiveShapes) {
+      if (!shape.isOnScreen(shape.localCenterY + topY)) continue;
       if (!shape.collider.collidesWith(ball)) continue;
 
-      shape.collider.handleCollision(ball);
-      break;
+      shape.handleCollision(ball);
     }
   }
 
@@ -143,11 +141,22 @@ class AbstractBiome extends Biome {
   }
 }
 
-class RectangleStyle {
+class DecorativeRectStyle {
   constructor({ parallaxScale, isBackground, color, minHW, maxHW, minHH, maxHH, density }) {
     this.parallaxScale = parallaxScale;
     this.isBackground = isBackground;
     this.color = color;
+    this.minHW = minHW;
+    this.maxHW = maxHW;
+    this.minHH = minHH;
+    this.maxHH = maxHH;
+    this.density = density;
+  }
+}
+
+class InteractiveRectStyle {
+  constructor({ colors, minHW, maxHW, minHH, maxHH, density }) {
+    this.colors = colors;
     this.minHW = minHW;
     this.maxHW = maxHW;
     this.minHH = minHH;

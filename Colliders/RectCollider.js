@@ -64,16 +64,8 @@ class RectCollider extends Collider {
 
   getClosestPoint(ball) {
     return createVector(
-      constrain(
-        ball.worldCenterPos.x,
-        this.worldCenterPos.x - this.hw,
-        this.worldCenterPos.x + this.hw
-      ),
-      constrain(
-        ball.worldCenterPos.y,
-        this.worldCenterPos.y - this.hh,
-        this.worldCenterPos.y + this.hh
-      )
+      constrain(ball.worldCenterPos.x, this.worldCenterPos.x - this.hw, this.worldCenterPos.x + this.hw),
+      constrain(ball.worldCenterPos.y, this.worldCenterPos.y - this.hh, this.worldCenterPos.y + this.hh)
     );
   }
 }

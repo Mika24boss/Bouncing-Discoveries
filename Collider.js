@@ -1,11 +1,12 @@
 class Collider {
-  constructor(worldCenterX, worldCenterY, bounciness = 1) {
+  constructor(worldCenterX, worldCenterY, bounciness = 1, minimumSlowdown = 0.99) {
     if (this.constructor === Collider) {
       throw new Error("Abstract class 'Collider' cannot be instantiated.");
     }
 
     this.worldCenterPos = createVector(worldCenterX, worldCenterY);
     this.bounciness = bounciness;
+    this.minimumSlowdown = minimumSlowdown;
   }
 
   /**
@@ -14,11 +15,11 @@ class Collider {
    */
   handleCollision(ball) {
     const normal = this.getNormal(ball);
-    if (normal.magSq() > 0) {
-      ball.velocity = p5.Vector.reflect(ball.velocity, normal);
-      ball.velocity.mult(this.bounciness);
-      this.correctPosition(ball, normal);
-    }
+    if (normal.magSq() === 0) return;
+
+    ball.velocity = p5.Vector.reflect(ball.velocity, normal);
+    this.applyBounciness(ball, normal);
+    this.correctPosition(ball, normal);
   }
 
   /**
@@ -46,5 +47,17 @@ class Collider {
    */
   correctPosition(ball, normal) {
     throw new Error("'correctPosition' method isn't implemented.");
+  }
+
+  /**
+   * Applies the bounciness coefficient after reflecting the ball after a collision.
+   * @param {Ball} ball Player's ball
+   * @param {p5.Vector} normal The normal vector at the point of collision
+   */
+  applyBounciness(ball, normal) {
+    const normalComponent = p5.Vector.dot(ball.velocity, normal);
+    const correction = p5.Vector.mult(normal, (this.bounciness - 1) * normalComponent); // Dampen the normal component of the velocity
+    ball.velocity.add(correction);
+    ball.velocity.mult(this.minimumSlowdown); // Apply minimum slowdown to prevent infinite bouncing
   }
 }

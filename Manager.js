@@ -13,24 +13,26 @@ class Manager {
       currentWorldY += this.biomes[this.biomes.length - 1].biomeHeight;
     }
     this.totalWorldHeight = currentWorldY;
+    this.currentBiome = this.biomes[0];
 
     this.ball = new Ball(width / 2, height / 3, this.totalWorldHeight);
   }
 
   update() {
+    this.ball.update(this.currentBiome.gravity, this.currentBiome.maxVelocity);
+    this.ball.checkWorldEdges();
+    
     this.currentBiome = null;
     for (let biome of this.biomes) {
-      if (!biome.isOnScreen(biome.worldStartY - this.cameraWorldY)) continue;
+      let topY = biome.worldStartY - this.cameraWorldY;
+      if (!biome.isOnScreen(topY)) continue;
 
-      biome.update(this.ball);
+      biome.update(this.ball, topY);
 
       if (!this.currentBiome && this.ball.worldCenterPos.y <= biome.worldStartY + biome.biomeHeight) {
         this.currentBiome = biome;
       }
     }
-
-    this.ball.update(this.currentBiome.gravity, this.currentBiome.maxVelocity);
-    this.ball.checkWorldEdges();
   }
 
   drawScene() {

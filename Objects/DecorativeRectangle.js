@@ -13,17 +13,20 @@ class DecorativeRectangle {
   draw(topY, scaledTopY) {
     const screenX = this.localCenterX;
     const screenY = scaledTopY + this.localCenterY;
-    if (screenY + this.hh < 0 || screenY - this.hh > height) return; // Skip if not on screen
-    if (screenY + this.hh < topY || screenY - this.hh > topY + this.biomeHeight)
-      return; // Skip if not in biome's range
+    if (!this.isOnScreen(screenY)) return;
+    if (screenY + this.hh < topY || screenY - this.hh > topY + this.biomeHeight) return; // Skip if not in biome's range
 
     let topEdgeY = max(topY, screenY - this.hh);
     let bottomEdgeY = min(topY + this.biomeHeight, screenY + this.hh);
-    
+
     push();
     noStroke();
     fill(this.color);
     rect(screenX - this.hw, topEdgeY, this.hw * 2, bottomEdgeY - topEdgeY);
     pop();
+  }
+
+  isOnScreen(screenY) {
+    return screenY + this.hh >= 0 && screenY - this.hh <= height;
   }
 }

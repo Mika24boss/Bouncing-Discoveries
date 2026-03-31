@@ -63,7 +63,7 @@ class Biome {
     return topY - this.startOverlapHeight <= height && topY + this.biomeHeight >= 0;
   }
 
-  update(ball) {}
+  update(ball, topY) {}
   drawBodyBG(topY) {}
   drawBodyFG(topY) {}
   drawStartBG(topY) {}
