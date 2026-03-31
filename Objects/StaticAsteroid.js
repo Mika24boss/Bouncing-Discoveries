@@ -1,24 +1,23 @@
-class Asteroid {
+class StaticAsteroid {
   constructor(
     biomeHeight,
-    beltHeight,
-    staticBeltHeight,
+    startHeight,
+    endHeight,
     isBackground,
+    position,
     radius = null,
-    position = null,
-    velocity = null
   ) {
     this.biomeHeight = biomeHeight;
-    this.toDelete = false;
-    this.rotationSpeed = random(-0.01, 0.01);
+    this.startHeight = startHeight;
+    this.endHeight = endHeight;
+    this.rotationSpeed = random(-0.005, 0.005);
     this.rotation = 0;
 
     if (radius) this.radius = radius;
 
     let positionRndNumber = -1;
-    if (position && velocity) {
+    if (position) {
       this.position = position.copy();
-      this.velocity = velocity.copy();
     } else {
       positionRndNumber = random();
     }
@@ -27,33 +26,12 @@ class Asteroid {
     this.isBackground = isBackground;
     if (this.isBackground) {
       this.color = color(230, 0, random(8, 16));
-      if (!radius) this.radius = random(5, 12);
-      
-      // Left spawn
-      if (positionRndNumber > -1 && positionRndNumber < 0.5) {
-        this.position = createVector(-this.radius, random(beltHeight) + staticBeltHeight);
-        this.velocity = createVector(random(1, 2), random(-0.5, 0.5));
-      }
-      // Right spawn
-      else if (positionRndNumber > -1) {
-        this.position = createVector(width + this.radius, random(biomeHeight - beltHeight, biomeHeight) - staticBeltHeight);
-        this.velocity = createVector(random(-2, -1), random(-0.5, 0.5));
-      }
+      if (!radius) this.radius = random(10, 25);
+
     } else {
       // Foreground
       this.color = color(230, 5, random(30, 55));
-      if (!radius) this.radius = random(15, 30);
-
-      // Left spawn
-      if (positionRndNumber > -1 && positionRndNumber < 0.5) {
-        this.position = createVector(-this.radius, random(beltHeight) + staticBeltHeight);
-        this.velocity = createVector(random(3, 5), random(-2.5, 2.5));
-      }
-      // Right spawn
-      else if (positionRndNumber > -1) {
-        this.position = createVector(width + this.radius, random(biomeHeight - beltHeight, biomeHeight) - staticBeltHeight);
-        this.velocity = createVector(random(-5, -3), random(-2.5, 2.5));
-      }
+      if (!radius) this.radius = random(30, 60);
     }
 
     // Asteroid shape
@@ -84,7 +62,6 @@ class Asteroid {
   }
 
   update() {
-    this.position.add(this.velocity);
     this.rotation += this.rotationSpeed;
   }
 
@@ -131,26 +108,5 @@ class Asteroid {
       vertex(x, y);
     }
     endShape(CLOSE);
-  }
-
-  isOutsideBiome() {
-    // Top
-    if (this.position.y + 2 * this.radius < 0) return true;
-    // Bottom
-    if (this.position.y - 2 * this.radius > this.biomeHeight) return true;
-    // Left
-    if (this.position.x + 2 * this.radius < 0) return true;
-    // Right
-    if (this.position.x - 2 * this.radius > width) return true;
-
-    return false;
-  }
-
-  isAsteroidHit(asteroid) {
-    let dx = this.position.x - asteroid.position.x;
-    let dy = this.position.y - asteroid.position.y;
-    let distanceSq = dx * dx + dy * dy;
-    let radiusSum = this.radius + asteroid.radius;
-    return distanceSq < radiusSum * radiusSum;
   }
 }

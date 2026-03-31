@@ -33,7 +33,14 @@ class SpaceBiome extends Biome {
   originalMaxVelocity = 0;
   slowZoneDistance = 1000; // Distance from the biome center where the player starts slowing down
   slowZoneCenter = 200; // Distance from the biome center where the player is at the slowest
-  slowMaxVelocity = 0.4;
+  slowMaxVelocity = 10.4;
+
+  // Static asteroids
+  asteroidsStaticBG = [];
+  asteroidsStaticFG = [];
+  numStaticAsteroidsBG = 8;
+  numStaticAsteroidsFG = 8;
+  staticBeltHeight = 400;
 
   constructor(worldStartY) {
     super(
@@ -43,7 +50,7 @@ class SpaceBiome extends Biome {
       0, // startHeight
       0, // endHeight
       0.05, // gravity
-      3 // maxVelocity
+      10 // maxVelocity
     );
 
     this.originalMaxVelocity = this.maxVelocity;
@@ -68,8 +75,37 @@ class SpaceBiome extends Biome {
     galaxyLayer.content.push(galaxy);
     this.layersBG.push(galaxyLayer);
 
+    // Top belt
+    this.createStaticAsteroidBelt(this.numStaticAsteroidsBG, this.asteroidsStaticBG, true, true);
+    this.createStaticAsteroidBelt(this.numStaticAsteroidsFG, this.asteroidsStaticFG, false, true);
+    // Bottom belt
+    this.createStaticAsteroidBelt(this.numStaticAsteroidsBG, this.asteroidsStaticBG, true, false);
+    this.createStaticAsteroidBelt(this.numStaticAsteroidsFG, this.asteroidsStaticFG, false, false);
+
     this.earthEmoji = random(this.earthEmojis);
   }
+
+  createStaticAsteroidBelt(numAsteroids, asteroids, isBackground, isTop) {
+    for (let astStat = 0; astStat < numAsteroids; astStat++) {
+      let minY = isTop ? 0 : this.biomeHeight - this.staticBeltHeight;
+      let maxY = isTop ? this.staticBeltHeight : this.biomeHeight;
+      let position = createVector(random(width), random(minY, maxY));
+      let newAsteroid = new StaticAsteroid(this.biomeHeight, this.startHeight, this.endHeight, isBackground, position);
+
+      let diameter = newAsteroid.radius * 2;
+      if (isTop) {
+        if (diameter > newAsteroid.position.y) {
+          newAsteroid.position.y = diameter;
+        }
+      } else {
+        if (diameter > this.biomeHeight - newAsteroid.position.y) {
+          newAsteroid.position.y = this.biomeHeight - diameter;
+        }
+      }
+      asteroids.push(newAsteroid);
+    }
+  }
+
 
   update(ball) {
     let distFromCenter = abs(ball.worldCenterPos.y - this.biomeWorldCenterY);
@@ -89,14 +125,17 @@ class SpaceBiome extends Biome {
     this.asteroidDelayFG--;
 
     if (this.asteroidDelayBG <= 0) {
-      this.asteroidsBG.push(new Asteroid(this.biomeHeight, this.beltHeight, true));
+      this.asteroidsBG.push(new Asteroid(this.biomeHeight, this.beltHeight, this.staticBeltHeight, true));
       this.asteroidDelayBG = random(this.minAsteroidDelayBG, this.maxAsteroidDelayBG);
     }
 
     if (this.asteroidDelayFG <= 0) {
-      this.asteroidsFG.push(new Asteroid(this.biomeHeight, this.beltHeight, false));
+      this.asteroidsFG.push(new Asteroid(this.biomeHeight, this.beltHeight, this.staticBeltHeight, false));
       this.asteroidDelayFG = random(this.minAsteroidDelayFG, this.maxAsteroidDelayFG);
     }
+
+    this.asteroidsStaticBG.forEach((astStat) => astStat.update());
+    this.asteroidsStaticFG.forEach((astStat) => astStat.update());
   }
 
   updateAsteroids(isBackground, asteroids, minAsteroidRadius) {
@@ -168,11 +207,19 @@ class SpaceBiome extends Biome {
     for (let asteroid of this.asteroidsBG) {
       asteroid.draw(topY);
     }
+
+    for (let asteroidStatic of this.asteroidsStaticBG) {
+      asteroidStatic.draw(topY);
+    }
   }
 
   drawBodyFG(topY) {
     for (let asteroid of this.asteroidsFG) {
       asteroid.draw(topY);
+    }
+
+    for (let asteroidStatic of this.asteroidsStaticFG) {
+      asteroidStatic.draw(topY);
     }
   }
 
@@ -240,6 +287,7 @@ class SpaceBiome extends Biome {
         new Asteroid(
           this.biomeHeight,
           this.beltHeight,
+          this.staticBeltHeight,
           isBackground,
           param.radius,
           createVector(direction.x, direction.y),
