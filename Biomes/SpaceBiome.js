@@ -63,8 +63,6 @@ class SpaceBiome extends Biome {
       this.showOrbits,
       galaxyLayer.layerHeight,
       this.biomeHeight,
-      this.startHeight,
-      this.endHeight,
       this.cullPadding
     );
     galaxyLayer.content.push(galaxy);

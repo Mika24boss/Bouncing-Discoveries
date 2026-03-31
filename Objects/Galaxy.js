@@ -6,8 +6,6 @@ class Galaxy {
     showOrbits,
     layerHeight,
     biomeHeight,
-    startHeight,
-    endHeight,
     cullPadding
   ) {
     this.spirals = spirals;
@@ -16,8 +14,6 @@ class Galaxy {
     this.showOrbits = showOrbits;
     this.layerHeight = layerHeight;
     this.biomeHeight = biomeHeight;
-    this.startHeight = startHeight;
-    this.endHeight = endHeight;
     this.cullPadding = cullPadding;
 
     this.spiralSpacing = (height * this.spacingMult) / this.spirals; // Spacing between spiral arms
@@ -48,8 +44,8 @@ class Galaxy {
     let rightCullEdge = width / 2 + this.cullPadding;
     let topCullEdge = -this.cullPadding;
     let bottomCullEdge = height + this.cullPadding;
-    let startCullEdge = topY + this.startHeight - this.cullPadding;
-    let endCullEdge = topY + this.biomeHeight - this.endHeight + this.cullPadding;
+    let startCullEdge = topY + this.cullPadding;
+    let endCullEdge = topY + this.biomeHeight + this.cullPadding;
 
     translate(width / 2, scaledMidY);
 
