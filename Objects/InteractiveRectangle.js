@@ -1,8 +1,8 @@
 class InteractiveRectangle {
   constructor(biomeHeight, worldStartY, style) {
     this.localCenterX = random() * width;
-    let spawnPaddingTop = 400; // Prevent spawning too close to the start of the biome
-    this.localCenterY = random() * (biomeHeight - spawnPaddingTop) + spawnPaddingTop;
+    let spawnPadding = 400; // Prevent spawning too close to the start or the end
+    this.localCenterY = random() * (biomeHeight - 2 * spawnPadding) + spawnPadding;
 
     this.hw = random() * (style.maxHW - style.minHW) + style.minHW;
     this.hh = random() * (style.maxHH - style.minHH) + style.minHH;
