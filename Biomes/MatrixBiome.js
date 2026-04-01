@@ -13,7 +13,7 @@ class MatrixBiome extends Biome {
   constructor(worldStartY) {
     super(
       worldStartY,
-      4000, // biomeHeight
+      3000, // biomeHeight
       50, // startOverlapHeight
       100, // startHeight
       100, // endHeight

@@ -39,15 +39,19 @@ function keyPressed() {
       paused = !paused;
       break;
     case UP_ARROW:
+    case 87: // W key
       manager.pushBall(0, -force);
       break;
     case DOWN_ARROW:
+    case 83: // S key
       manager.pushBall(0, force);
       break;
     case RIGHT_ARROW:
+    case 68: // D key
       manager.pushBall(force, 0);
       break;
     case LEFT_ARROW:
+    case 65: // A key
       manager.pushBall(-force, 0);
       break;
   }
