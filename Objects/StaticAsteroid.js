@@ -1,15 +1,6 @@
 class StaticAsteroid {
-  constructor(
-    biomeHeight,
-    startHeight,
-    endHeight,
-    isBackground,
-    position,
-    radius = null,
-  ) {
+  constructor(biomeHeight, isBackground, position, radius = null) {
     this.biomeHeight = biomeHeight;
-    this.startHeight = startHeight;
-    this.endHeight = endHeight;
     this.rotationSpeed = random(-0.005, 0.005);
     this.rotation = 0;
 
@@ -27,7 +18,6 @@ class StaticAsteroid {
     if (this.isBackground) {
       this.color = color(230, 0, random(8, 16));
       if (!radius) this.radius = random(10, 25);
-
     } else {
       // Foreground
       this.color = color(230, 5, random(30, 55));

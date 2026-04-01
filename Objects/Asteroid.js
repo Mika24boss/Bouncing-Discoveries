@@ -1,6 +1,8 @@
 class Asteroid {
   constructor(
     biomeHeight,
+    startHeight,
+    endHeight,
     beltHeight,
     staticBeltHeight,
     isBackground,
@@ -28,15 +30,18 @@ class Asteroid {
     if (this.isBackground) {
       this.color = color(230, 0, random(8, 16));
       if (!radius) this.radius = random(5, 12);
-      
+
       // Left spawn
       if (positionRndNumber > -1 && positionRndNumber < 0.5) {
-        this.position = createVector(-this.radius, random(beltHeight) + staticBeltHeight);
+        this.position = createVector(-this.radius, random(beltHeight) + staticBeltHeight + startHeight / 2);
         this.velocity = createVector(random(1, 2), random(-0.5, 0.5));
       }
       // Right spawn
       else if (positionRndNumber > -1) {
-        this.position = createVector(width + this.radius, random(biomeHeight - beltHeight, biomeHeight) - staticBeltHeight);
+        this.position = createVector(
+          width + this.radius,
+          -random(beltHeight) + biomeHeight - staticBeltHeight - endHeight / 2
+        );
         this.velocity = createVector(random(-2, -1), random(-0.5, 0.5));
       }
     } else {
@@ -46,12 +51,15 @@ class Asteroid {
 
       // Left spawn
       if (positionRndNumber > -1 && positionRndNumber < 0.5) {
-        this.position = createVector(-this.radius, random(beltHeight) + staticBeltHeight);
+        this.position = createVector(-this.radius, random(beltHeight) + staticBeltHeight + startHeight / 2);
         this.velocity = createVector(random(3, 5), random(-2.5, 2.5));
       }
       // Right spawn
       else if (positionRndNumber > -1) {
-        this.position = createVector(width + this.radius, random(biomeHeight - beltHeight, biomeHeight) - staticBeltHeight);
+        this.position = createVector(
+          width + this.radius,
+          -random(beltHeight) + biomeHeight - staticBeltHeight - endHeight / 2
+        );
         this.velocity = createVector(random(-5, -3), random(-2.5, 2.5));
       }
     }

@@ -1,6 +1,7 @@
 class SpaceBiome extends Biome {
   layersBG = []; // Parallax layers for the background
 
+  // Galaxy
   spirals = 75; // Number of spiral arms
   spacingMult = 1.5; // Multiplier for spacing between spirals
   starDensity = 100; // Number of stars per spiral
@@ -26,29 +27,29 @@ class SpaceBiome extends Biome {
   maxAsteroidDelayFG = 6; // Maximum spawning delay
   minAsteroidRadiusFG = 5; // Minimum radius
 
+  // Asteroid belt and collision
   childAsteroidSpeedMult = 0.5; // Multiplier for child asteroid speed compared to parent asteroid
   childAsteroidSpreadProp = 0.5; // Controls the spread of child asteroids (between 0 and 1), where 0 means all children have the same velocity
-  beltHeight = 1500; // Height taken up by the asteroid belt
-
-  originalMaxVelocity = 0;
+  beltHeight = 1250; // Height of the asteroid belt
+  originalMaxVelocity = 0; // Original max velocity
   slowZoneDistance = 1000; // Distance from the biome center where the player starts slowing down
   slowZoneCenter = 200; // Distance from the biome center where the player is at the slowest
   slowMaxVelocity = 0.4;
 
   // Static asteroids
-  asteroidsStaticBG = [];
-  asteroidsStaticFG = [];
-  numStaticAsteroidsBG = 8;
-  numStaticAsteroidsFG = 8;
-  staticBeltHeight = 400;
+  asteroidsStaticBG = []; // Array of static asteroids in the background
+  asteroidsStaticFG = []; // Array of static asteroids in the foreground
+  numStaticAsteroidsBG = 8; // Number of static asteroids in the background
+  numStaticAsteroidsFG = 8; // Number of static asteroids in the foreground
+  staticBeltHeight = 400; // Height of the static asteroid belt
 
   constructor(worldStartY) {
     super(
       worldStartY,
       7000, // biomeHeight
       0, // startOverlapHeight
-      0, // startHeight
-      0, // endHeight
+      600, // startHeight
+      600, // endHeight
       0.05, // gravity
       3 // maxVelocity
     );
@@ -58,7 +59,7 @@ class SpaceBiome extends Biome {
 
     let nebulaLayer = new ParallaxLayer(this.nebulaeParallaxScale, this.biomeHeight);
     for (let i = 0; i < this.numNebulae; i++) {
-      nebulaLayer.content.push(new Nebula(nebulaLayer.layerHeight, this.startHeight, this.endHeight));
+      nebulaLayer.content.push(new Nebula(this.biomeHeight, nebulaLayer.layerHeight, this.startHeight, this.endHeight));
     }
     this.layersBG.push(nebulaLayer);
 
@@ -87,10 +88,10 @@ class SpaceBiome extends Biome {
 
   createStaticAsteroidBelt(numAsteroids, asteroids, isBackground, isTop) {
     for (let astStat = 0; astStat < numAsteroids; astStat++) {
-      let minY = isTop ? 0 : this.biomeHeight - this.staticBeltHeight;
-      let maxY = isTop ? this.staticBeltHeight : this.biomeHeight;
+      let minY = isTop ? this.startHeight / 2 : this.biomeHeight - this.staticBeltHeight - this.endHeight / 2;
+      let maxY = isTop ? this.startHeight / 2 + this.staticBeltHeight : this.biomeHeight - this.endHeight / 2;
       let position = createVector(random(width), random(minY, maxY));
-      let newAsteroid = new StaticAsteroid(this.biomeHeight, this.startHeight, this.endHeight, isBackground, position);
+      let newAsteroid = new StaticAsteroid(this.biomeHeight, isBackground, position);
 
       let diameter = newAsteroid.radius * 2;
       if (isTop) {
@@ -105,7 +106,6 @@ class SpaceBiome extends Biome {
       asteroids.push(newAsteroid);
     }
   }
-
 
   update(ball) {
     let distFromCenter = abs(ball.worldCenterPos.y - this.biomeWorldCenterY);
@@ -125,12 +125,16 @@ class SpaceBiome extends Biome {
     this.asteroidDelayFG--;
 
     if (this.asteroidDelayBG <= 0) {
-      this.asteroidsBG.push(new Asteroid(this.biomeHeight, this.beltHeight, this.staticBeltHeight, true));
+      this.asteroidsBG.push(
+        new Asteroid(this.biomeHeight, this.startHeight, this.endHeight, this.beltHeight, this.staticBeltHeight, true)
+      );
       this.asteroidDelayBG = random(this.minAsteroidDelayBG, this.maxAsteroidDelayBG);
     }
 
     if (this.asteroidDelayFG <= 0) {
-      this.asteroidsFG.push(new Asteroid(this.biomeHeight, this.beltHeight, this.staticBeltHeight, false));
+      this.asteroidsFG.push(
+        new Asteroid(this.biomeHeight, this.startHeight, this.endHeight, this.beltHeight, this.staticBeltHeight, false)
+      );
       this.asteroidDelayFG = random(this.minAsteroidDelayFG, this.maxAsteroidDelayFG);
     }
 
@@ -223,6 +227,41 @@ class SpaceBiome extends Biome {
     }
   }
 
+  drawStartFG(topY) {
+    this.drawCloudTransition(topY, true);
+  }
+
+  drawEndFG(topY) {
+    this.drawCloudTransition(topY + this.biomeHeight, false);
+  }
+
+  drawCloudTransition(yAnchor, isTop) {
+    push();
+    noStroke();
+
+    const cloudLayers = 5;
+    let totalHeight = isTop ? this.startHeight : this.endHeight;
+    let layerGap = totalHeight / cloudLayers / 2;
+    let layerOffset = 0;
+    for (let l = 0; l < cloudLayers; l++) {
+      let h = map(l, 0, cloudLayers - 1, 200, 275);
+      let b = map(l, 0, cloudLayers - 1, 60, 25);
+      let a = map(l, 0, cloudLayers - 1, 0.5, 0.1);
+      fill(h, 100, b, a);
+
+      for (let x = -100; x < width + 100; x += 60) {
+        let n = noise(x * 0.008, l * 0.5);
+        let cloudSize = (n + 1) * 4 * layerGap;
+        let verticalDrift = n * 120;
+
+        let finalY = isTop ? yAnchor + layerOffset + verticalDrift - 60 : yAnchor - layerOffset - verticalDrift + 60;
+        ellipse(x, finalY, cloudSize, cloudSize * 0.5);
+      }
+      layerOffset += layerGap;
+    }
+    pop();
+  }
+
   drawBall(screenX, screenY, radius) {
     push();
     textSize(radius * 2);
@@ -286,6 +325,8 @@ class SpaceBiome extends Biome {
       newAsteroids.push(
         new Asteroid(
           this.biomeHeight,
+          this.startHeight,
+          this.endHeight,
           this.beltHeight,
           this.staticBeltHeight,
           isBackground,

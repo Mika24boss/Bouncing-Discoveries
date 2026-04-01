@@ -1,9 +1,11 @@
 class Nebula {
-  constructor(layerHeight, startHeight, endHeight) {
+  constructor(biomeHeight, layerHeight, startHeight, endHeight) {
+    this.biomeHeight = biomeHeight;
+
     let h = random(200, 280);
     let s = random(70, 100);
-    let b = random(40, 60);
-    let p5Color = color(h, s, b, 0.2);
+    let b = random(50, 70);
+    let p5Color = color(h, s, b, 0.25);
 
     this.centerX = random(width);
     this.centerY = random(startHeight, layerHeight - startHeight - endHeight);
@@ -24,7 +26,9 @@ class Nebula {
 
     drawingContext.fillStyle = grad;
     // Draw the rectangle centered on the nebula's position
-    drawingContext.fillRect(this.centerX - this.radius, screenY - this.radius, this.radius * 2, this.radius * 2);
+    let rectTopEdge = max(topY, screenY - this.radius);
+    let rectBottomEdge = min(topY + this.biomeHeight, screenY + this.radius);
+    drawingContext.fillRect(this.centerX - this.radius, rectTopEdge, this.radius * 2, rectBottomEdge - rectTopEdge);
 
     drawingContext.restore();
 
