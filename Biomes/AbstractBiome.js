@@ -139,28 +139,31 @@ class AbstractBiome extends Biome {
     circle(screenX, screenY, radius * 2);
     pop();
   }
-}
 
-class DecorativeRectStyle {
-  constructor({ parallaxScale, isBackground, color, minHW, maxHW, minHH, maxHH, density }) {
-    this.parallaxScale = parallaxScale;
-    this.isBackground = isBackground;
-    this.color = color;
-    this.minHW = minHW;
-    this.maxHW = maxHW;
-    this.minHH = minHH;
-    this.maxHH = maxHH;
-    this.density = density;
-  }
-}
+  reset() {
+    this.layersBG = [];
+    this.layersFG = [];
+    this.interactiveShapes = [];
 
-class InteractiveRectStyle {
-  constructor({ colors, minHW, maxHW, minHH, maxHH, density }) {
-    this.colors = colors;
-    this.minHW = minHW;
-    this.maxHW = maxHW;
-    this.minHH = minHH;
-    this.maxHH = maxHH;
-    this.density = density;
+    for (let style of this.decorativeStyles) {
+      let scale = style.parallaxScale;
+      let parallaxLayer = new ParallaxLayer(scale, this.biomeHeight);
+
+      let numberOfShapes = width * style.density;
+      for (let i = 0; i < numberOfShapes; i++) {
+        let newShape = new DecorativeRectangle(this.biomeHeight, parallaxLayer.layerHeight, style);
+        parallaxLayer.content.push(newShape);
+      }
+      if (style.isBackground) this.layersBG.push(parallaxLayer);
+      else this.layersFG.push(parallaxLayer);
+    }
+
+    for (let style of this.interactiveStyles) {
+      let numberOfShapes = width * style.density;
+      for (let i = 0; i < numberOfShapes; i++) {
+        let newShape = new InteractiveRectangle(this.biomeHeight, this.worldStartY, style);
+        this.interactiveShapes.push(newShape);
+      }
+    }
   }
 }

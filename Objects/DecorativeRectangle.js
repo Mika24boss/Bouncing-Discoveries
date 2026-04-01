@@ -30,3 +30,16 @@ class DecorativeRectangle {
     return screenY + this.hh >= 0 && screenY - this.hh <= height;
   }
 }
+
+class DecorativeRectStyle {
+  constructor({ parallaxScale, isBackground, color, minHW, maxHW, minHH, maxHH, density }) {
+    this.parallaxScale = parallaxScale;
+    this.isBackground = isBackground;
+    this.color = color;
+    this.minHW = minHW;
+    this.maxHW = maxHW;
+    this.minHH = minHH;
+    this.maxHH = maxHH;
+    this.density = density;
+  }
+}

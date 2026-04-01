@@ -46,3 +46,14 @@ class InteractiveRectangle {
     this.colorIndex = (this.colorIndex + 1) % this.colors.length;
   }
 }
+
+class InteractiveRectStyle {
+  constructor({ colors, minHW, maxHW, minHH, maxHH, density }) {
+    this.colors = colors;
+    this.minHW = minHW;
+    this.maxHW = maxHW;
+    this.minHH = minHH;
+    this.maxHH = maxHH;
+    this.density = density;
+  }
+}
