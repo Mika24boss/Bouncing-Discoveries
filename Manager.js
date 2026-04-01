@@ -48,7 +48,6 @@ class Manager {
       !Manager.showingTitle &&
       this.ball.worldCenterPos.y + this.ball.radius > this.totalWorldHeight - 1
     ) {
-      console.log("Idle frames: " + this.idleFrames);
       this.idleFrames++;
     } else {
       this.idleFrames = 0;
