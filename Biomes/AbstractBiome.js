@@ -3,7 +3,7 @@ class AbstractBiome extends Biome {
     new DecorativeRectStyle({
       parallaxScale: 0.4,
       isBackground: true,
-      color: color(0, 100, 60),
+      color: color(52, 50, 95, 1),
       minHW: 10,
       maxHW: 20,
       minHH: 10,
@@ -13,7 +13,7 @@ class AbstractBiome extends Biome {
     new DecorativeRectStyle({
       parallaxScale: 0.6,
       isBackground: true,
-      color: color(30, 100, 80),
+      color: color(270, 55, 100, 0.5),
       minHW: 20,
       maxHW: 30,
       minHH: 30,
@@ -23,7 +23,7 @@ class AbstractBiome extends Biome {
     new DecorativeRectStyle({
       parallaxScale: 0.8,
       isBackground: true,
-      color: color(60, 100, 100),
+      color: color(300, 45, 100, 0.7),
       minHW: 50,
       maxHW: 70,
       minHH: 20,
@@ -33,7 +33,7 @@ class AbstractBiome extends Biome {
     new DecorativeRectStyle({
       parallaxScale: 2,
       isBackground: false,
-      color: color(0, 0, 100, 0.8),
+      color: color(0, 0, 100, 0.4),
       minHW: 50,
       maxHW: 150,
       minHH: 50,
@@ -44,7 +44,7 @@ class AbstractBiome extends Biome {
 
   interactiveStyles = [
     new InteractiveRectStyle({
-      colors: [color(180, 100, 100), color(290, 100, 100), color(0, 100, 100), color(90, 100, 100)],
+      colors: [color(38, 60, 100, 0.8), color(350, 80, 85), color(250, 90, 80), color(140, 70, 60)],
       minHW: 40,
       maxHW: 80,
       minHH: 40,
@@ -101,7 +101,7 @@ class AbstractBiome extends Biome {
 
   drawBodyBG(topY) {
     push();
-    fill(240, 80, 100);
+    fill(195, 55, 100);
     noStroke();
     rect(0, topY, width, this.biomeHeight);
     pop();
@@ -133,8 +133,8 @@ class AbstractBiome extends Biome {
 
   drawBall(screenX, screenY, radius) {
     push();
-    fill(300, 100, 100);
-    stroke(255);
+    fill(140, 85, 100);
+    stroke(150, 90, 70);
     strokeWeight(2);
     circle(screenX, screenY, radius * 2);
     pop();
