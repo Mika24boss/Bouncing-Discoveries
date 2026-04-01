@@ -1,11 +1,16 @@
 class Manager {
+  static showingTitle = true;
+  static titleAnimFramesLeft = 60;
+
   biomes = [];
   cameraWorldY = 0;
   lerpSpeed = 0.1; // Adjust smoothing factor for camera movement
   currentBiome = null;
+  idleRestartTime = 1000; // Frames until auto-restart when idle
+  idleFrames = 0;
 
   constructor() {
-    const biomes = [MatrixBiome, AbstractBiome, SpaceBiome];
+    const biomes = [StartBiome, AbstractBiome, MatrixBiome, SpaceBiome];
     let currentWorldY = 0;
 
     for (let BiomeClass of biomes) {
@@ -19,9 +24,13 @@ class Manager {
   }
 
   update() {
+    if (!Manager.showingTitle && Manager.titleAnimFramesLeft > 0) {
+      Manager.titleAnimFramesLeft--;
+    }
+
     this.ball.update(this.currentBiome.gravity, this.currentBiome.maxVelocity);
     this.ball.checkWorldEdges();
-    
+
     this.currentBiome = null;
     for (let biome of this.biomes) {
       let topY = biome.worldStartY - this.cameraWorldY;
@@ -33,6 +42,18 @@ class Manager {
         this.currentBiome = biome;
       }
     }
+
+    if (
+      this.ball.velocity.magSq() < 0.1 &&
+      !Manager.showingTitle &&
+      this.ball.worldCenterPos.y + this.ball.radius > this.totalWorldHeight - 1
+    ) {
+      console.log("Idle frames: " + this.idleFrames);
+      this.idleFrames++;
+    } else {
+      this.idleFrames = 0;
+    }
+    if (this.idleFrames > this.idleRestartTime) this.restart();
   }
 
   drawScene() {
@@ -60,5 +81,22 @@ class Manager {
   pushBall(x, y) {
     this.ball.velocity.x = x;
     this.ball.velocity.y = y;
+  }
+
+  userInput() {
+    Manager.showingTitle = false;
+    this.idleFrames = 0;
+  }
+
+  restart() {
+    for (let biome of this.biomes) {
+      biome.reset();
+    }
+
+    Manager.showingTitle = true;
+    Manager.titleAnimFramesLeft = 60;
+    this.cameraWorldY = 0;
+    this.currentBiome = this.biomes[0];
+    this.ball = new Ball(width / 2, height / 3, this.totalWorldHeight);
   }
 }

@@ -5,7 +5,8 @@ let manager;
 let rawTextCode;
 
 function preload() {
-  rawTextCode = loadStrings("code.txt");
+  rawTextCode = loadStrings("Assets/code.txt");
+  StartBiome.titleFont = loadFont("Assets/Bungee-Regular.ttf");
 }
 
 function setup() {
@@ -29,6 +30,9 @@ function draw() {
 }
 
 function keyPressed() {
+  manager.userInput();
+  if (Manager.titleAnimFramesLeft > 0) return;
+
   let force = 10;
   switch (keyCode) {
     case 32: // Space key
@@ -47,4 +51,8 @@ function keyPressed() {
       manager.pushBall(-force, 0);
       break;
   }
+}
+
+function mouseClicked() {
+  manager.userInput();
 }

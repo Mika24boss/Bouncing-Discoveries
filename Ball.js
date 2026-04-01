@@ -17,16 +17,17 @@ class Ball {
     this.velocity.add(createVector(x, y));
   }
 
-  checkWorldEdges(sideBounciness = 1, bottomBounciness = 0.8, topBounciness = 0.8) {
+  checkWorldEdges(sideBounciness = 0.95, verticalBounciness = 0.8, groundFriction = 0.9) {
     // Top border
     if (this.worldCenterPos.y - this.radius < 0) {
       this.worldCenterPos.y = this.radius;
-      this.velocity.y *= -topBounciness;
+      this.velocity.y *= -verticalBounciness;
     }
     // Bottom border
     if (this.worldCenterPos.y + this.radius > this.totalWorldHeight) {
       this.worldCenterPos.y = this.totalWorldHeight - this.radius;
-      this.velocity.y *= -bottomBounciness;
+      this.velocity.y *= -verticalBounciness;
+      this.velocity.x *= groundFriction;
     }
     // Left edge
     if (this.worldCenterPos.x - this.radius < 0) {

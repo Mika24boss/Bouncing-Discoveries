@@ -73,4 +73,5 @@ class Biome {
   drawBall(screenX, screenY, radius) {
     throw new Error("'drawBall' method isn't implemented.");
   }
+  reset() {}
 }

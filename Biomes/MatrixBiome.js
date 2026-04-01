@@ -157,6 +157,12 @@ class MatrixBiome extends Biome {
     pop();
   }
 
+  reset() {
+    let { wrappedLines, _ } = this.wrapCharacters();
+    this.wrappedLines = wrappedLines;
+    this.ballEmoji = random(this.ballEmojis);
+  }
+
   wrapCharacters() {
     let wrappedLines = [];
     let currentLine = "";

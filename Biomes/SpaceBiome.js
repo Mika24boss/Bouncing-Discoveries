@@ -46,7 +46,7 @@ class SpaceBiome extends Biome {
     super(
       worldStartY,
       7000, // biomeHeight
-      0, // startOverlapHeight
+      300, // startOverlapHeight
       600, // startHeight
       600, // endHeight
       0.05, // gravity
