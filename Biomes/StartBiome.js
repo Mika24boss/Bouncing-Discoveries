@@ -21,6 +21,14 @@ class StartBiome extends Biome {
     this.titleY = worldStartY + height / 2 + 25;
     this.paddle1 = new Paddle(width / 2 - 50, height / 3 + 40, PI / 4, worldStartY);
     this.paddle2 = new Paddle(width / 2 + 50, height / 3 + 40, -PI / 4, worldStartY);
+
+    push();
+    textFont(StartBiome.titleFont);
+    textSize(this.fontSize);
+    if (textWidth(this.title) > width * 0.9) {
+      this.title = this.title.split(" ").join("\n");
+    }
+    pop();
   }
 
   update(ball, topY) {

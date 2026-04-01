@@ -18,7 +18,7 @@ function setup() {
   createCanvas(canvasWidth, canvasHeight);
 
   // Inject processed matrix text into the class so it can access it
-  MatrixBiome.codeString = rawTextCode.join("").replace(/\s+/g, ""); // Remove all whitespace
+  MatrixBiome.codeString = rawTextCode.join("").replace(/\s+/g, " "); // Replace whitespaces of all length by a single space
 
   manager = new Manager();
 }

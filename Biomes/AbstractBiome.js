@@ -45,10 +45,10 @@ class AbstractBiome extends Biome {
   interactiveStyles = [
     new InteractiveRectStyle({
       colors: [color(38, 60, 100, 0.8), color(350, 80, 85), color(250, 90, 80), color(140, 70, 60)],
-      minHW: 40,
-      maxHW: 80,
-      minHH: 40,
-      maxHH: 80,
+      minHW: 30,
+      maxHW: 60,
+      minHH: 30,
+      maxHH: 60,
       density: 0.04,
     }),
   ];
