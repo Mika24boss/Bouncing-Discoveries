@@ -55,9 +55,9 @@ class StaticAsteroid {
     this.rotation += this.rotationSpeed;
   }
 
-  draw(topY) {
+  draw(topY, scaledTopY) {
     push();
-    translate(this.position.x, this.position.y + topY);
+    translate(this.position.x, this.position.y + scaledTopY);
     rotate(this.rotation);
 
     // Base shape (the shadow)

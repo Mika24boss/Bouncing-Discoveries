@@ -1,5 +1,6 @@
 class SpaceBiome extends Biome {
   layersBG = []; // Parallax layers for the background
+  layersFG = []; // Parallax layers for the foreground
 
   // Galaxy
   spirals = 75; // Number of spiral arms
@@ -37,8 +38,6 @@ class SpaceBiome extends Biome {
   slowMaxVelocity = 0.4;
 
   // Static asteroids
-  asteroidsStaticBG = []; // Array of static asteroids in the background
-  asteroidsStaticFG = []; // Array of static asteroids in the foreground
   numStaticAsteroidsBG = 8; // Number of static asteroids in the background
   numStaticAsteroidsFG = 8; // Number of static asteroids in the foreground
   staticBeltHeight = 400; // Height of the static asteroid belt
@@ -76,20 +75,57 @@ class SpaceBiome extends Biome {
     galaxyLayer.content.push(galaxy);
     this.layersBG.push(galaxyLayer);
 
+    let asteroidsStaticBG = [];
+    let asteroidsStaticFG = [];
+    let staticBeltLayerBG = new ParallaxLayer(0.75, this.biomeHeight);
+    let staticBeltLayerFG = new ParallaxLayer(0.95, this.biomeHeight);
+
     // Top belt
-    this.createStaticAsteroidBelt(this.numStaticAsteroidsBG, this.asteroidsStaticBG, true, true);
-    this.createStaticAsteroidBelt(this.numStaticAsteroidsFG, this.asteroidsStaticFG, false, true);
+    this.createStaticAsteroidBelt(
+      this.numStaticAsteroidsBG,
+      asteroidsStaticBG,
+      staticBeltLayerBG.layerHeight,
+      true,
+      true
+    );
+    this.createStaticAsteroidBelt(
+      this.numStaticAsteroidsFG,
+      asteroidsStaticFG,
+      staticBeltLayerFG.layerHeight,
+      false,
+      true
+    );
     // Bottom belt
-    this.createStaticAsteroidBelt(this.numStaticAsteroidsBG, this.asteroidsStaticBG, true, false);
-    this.createStaticAsteroidBelt(this.numStaticAsteroidsFG, this.asteroidsStaticFG, false, false);
+    this.createStaticAsteroidBelt(
+      this.numStaticAsteroidsBG,
+      asteroidsStaticBG,
+      staticBeltLayerBG.layerHeight,
+      true,
+      false
+    );
+    this.createStaticAsteroidBelt(
+      this.numStaticAsteroidsFG,
+      asteroidsStaticFG,
+      staticBeltLayerFG.layerHeight,
+      false,
+      false
+    );
+
+    staticBeltLayerBG.content = asteroidsStaticBG;
+    staticBeltLayerFG.content = asteroidsStaticFG;
+    this.layersBG.push(staticBeltLayerBG);
+    this.layersFG.push(staticBeltLayerFG);
 
     this.earthEmoji = random(this.earthEmojis);
   }
 
-  createStaticAsteroidBelt(numAsteroids, asteroids, isBackground, isTop) {
+  createStaticAsteroidBelt(numAsteroids, asteroids, layerHeight, isBackground, isTop) {
     for (let astStat = 0; astStat < numAsteroids; astStat++) {
       let minY = isTop ? this.startHeight / 2 : this.biomeHeight - this.staticBeltHeight - this.endHeight / 2;
       let maxY = isTop ? this.startHeight / 2 + this.staticBeltHeight : this.biomeHeight - this.endHeight / 2;
+      minY = (minY * layerHeight) / this.biomeHeight;
+      maxY = (maxY * layerHeight) / this.biomeHeight;
+
       let position = createVector(random(width), random(minY, maxY));
       let newAsteroid = new StaticAsteroid(this.biomeHeight, isBackground, position);
 
@@ -138,8 +174,8 @@ class SpaceBiome extends Biome {
       this.asteroidDelayFG = random(this.minAsteroidDelayFG, this.maxAsteroidDelayFG);
     }
 
-    this.asteroidsStaticBG.forEach((astStat) => astStat.update());
-    this.asteroidsStaticFG.forEach((astStat) => astStat.update());
+    this.layersBG[this.layersBG.length - 1].content.forEach((astStat) => astStat.update()); // We assume that static asteroids are always in the last layer :P
+    this.layersFG[0].content.forEach((astStat) => astStat.update()); 
   }
 
   updateAsteroids(isBackground, asteroids, minAsteroidRadius) {
@@ -211,20 +247,13 @@ class SpaceBiome extends Biome {
     for (let asteroid of this.asteroidsBG) {
       asteroid.draw(topY);
     }
-
-    for (let asteroidStatic of this.asteroidsStaticBG) {
-      asteroidStatic.draw(topY);
-    }
   }
 
   drawBodyFG(topY) {
     for (let asteroid of this.asteroidsFG) {
       asteroid.draw(topY);
     }
-
-    for (let asteroidStatic of this.asteroidsStaticFG) {
-      asteroidStatic.draw(topY);
-    }
+    this.layersFG.forEach((layer) => layer.draw(topY));
   }
 
   drawStartFG(topY) {
