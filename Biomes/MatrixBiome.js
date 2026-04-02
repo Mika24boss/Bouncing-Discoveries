@@ -18,7 +18,7 @@ class MatrixBiome extends Biome {
       100, // startHeight
       100, // endHeight
       0.5, // gravity
-      4 // maxVelocity
+      2 // maxVelocity
     );
 
     this.codeString = MatrixBiome.codeString;

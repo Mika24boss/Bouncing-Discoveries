@@ -106,7 +106,7 @@ class Galaxy {
 
   generateSpiralStyles() {
     this.spiralStyles = [];
-    let minStroke = max(1, width / 500);
+    let minStroke = max(1, width / 1000);
 
     for (let spiral = 0; spiral < this.spirals; spiral++) {
       let distFraction = spiral / this.spirals;

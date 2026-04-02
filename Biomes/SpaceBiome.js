@@ -3,8 +3,8 @@ class SpaceBiome extends Biome {
   layersFG = []; // Parallax layers for the foreground
 
   // Galaxy
-  spirals = 75; // Number of spiral arms
-  spacingMult = 1.5; // Multiplier for spacing between spirals
+  spirals = 100; // Number of spiral arms
+  spacingMult = 2; // Multiplier for spacing between spirals
   starDensity = 100; // Number of stars per spiral
   showOrbits = false; // Show orbit paths
   cullPadding = 5; // Extra padding for culling stars outside the screen (without padding, some partially visible stars at the edges can be culled)
