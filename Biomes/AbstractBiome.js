@@ -68,26 +68,7 @@ class AbstractBiome extends Biome {
       20 // maxVelocity
     );
 
-    for (let style of this.decorativeStyles) {
-      let scale = style.parallaxScale;
-      let parallaxLayer = new ParallaxLayer(scale, this.biomeHeight);
-
-      let numberOfShapes = width * style.density;
-      for (let i = 0; i < numberOfShapes; i++) {
-        let newShape = new DecorativeRectangle(this.biomeHeight, parallaxLayer.layerHeight, style);
-        parallaxLayer.content.push(newShape);
-      }
-      if (style.isBackground) this.layersBG.push(parallaxLayer);
-      else this.layersFG.push(parallaxLayer);
-    }
-
-    for (let style of this.interactiveStyles) {
-      let numberOfShapes = width * style.density;
-      for (let i = 0; i < numberOfShapes; i++) {
-        let newShape = new InteractiveRectangle(this.biomeHeight, this.worldStartY, style);
-        this.interactiveShapes.push(newShape);
-      }
-    }
+    this.generateShapes();
   }
 
   update(ball, topY) {
@@ -141,6 +122,10 @@ class AbstractBiome extends Biome {
   }
 
   reset() {
+    this.generateShapes();
+  }
+
+  generateShapes() {
     this.layersBG = [];
     this.layersFG = [];
     this.interactiveShapes = [];
@@ -149,7 +134,7 @@ class AbstractBiome extends Biome {
       let scale = style.parallaxScale;
       let parallaxLayer = new ParallaxLayer(scale, this.biomeHeight);
 
-      let numberOfShapes = width * style.density;
+      let numberOfShapes = width * height * style.density / 1000;
       for (let i = 0; i < numberOfShapes; i++) {
         let newShape = new DecorativeRectangle(this.biomeHeight, parallaxLayer.layerHeight, style);
         parallaxLayer.content.push(newShape);
@@ -159,7 +144,7 @@ class AbstractBiome extends Biome {
     }
 
     for (let style of this.interactiveStyles) {
-      let numberOfShapes = width * style.density;
+      let numberOfShapes = width * height * style.density / 1000;
       for (let i = 0; i < numberOfShapes; i++) {
         let newShape = new InteractiveRectangle(this.biomeHeight, this.worldStartY, style);
         this.interactiveShapes.push(newShape);

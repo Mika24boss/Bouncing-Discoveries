@@ -2,7 +2,7 @@ class Ball {
   constructor(worldCenterX, worldCenterY, totalWorldHeight) {
     this.worldCenterPos = createVector(worldCenterX, worldCenterY);
     this.velocity = createVector(0, 0);
-    this.radius = 40;
+    this.radius = max(0.016 * width, 20);
     this.currentRenderer = null;
     this.totalWorldHeight = totalWorldHeight;
   }

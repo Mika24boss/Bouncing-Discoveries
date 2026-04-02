@@ -5,7 +5,7 @@ let manager;
 let rawTextCode;
 
 function preload() {
-  rawTextCode = loadStrings("Assets/code.txt");
+  rawTextCode = loadStrings("Biomes/MatrixBiome.js");
   StartBiome.titleFont = loadFont("Assets/Bungee-Regular.ttf");
 }
 
@@ -17,7 +17,10 @@ function setup() {
   createCanvas(canvasWidth, canvasHeight);
 
   // Inject processed matrix text into the class so it can access it
-  MatrixBiome.codeString = rawTextCode.join("").replace(/\s+/g, " "); // Replace whitespaces of all length by a single space
+  MatrixBiome.codeString = rawTextCode
+    .join(" ")
+    .replace(/\s+/g, " ") // Replace whitespaces of all length by a single space
+    .replace(/\p{Emoji_Presentation}/gu, ""); // Remove emojis
 
   manager = new Manager();
 }

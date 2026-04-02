@@ -7,7 +7,7 @@ class MatrixBiome extends Biome {
   gapLine = 25;
 
   ballCenterPos = createVector(0, 0);
-  ballEffectRadius = 80;
+  ballEffectRadius = 90;
   ballEffectStrength = 50;
 
   constructor(worldStartY) {
@@ -30,6 +30,8 @@ class MatrixBiome extends Biome {
   }
 
   update(ball, topY) {
+    this.ballEffectRadius = 2.25 * ball.radius;
+    this.ballEffectStrength = 1.25 * ball.radius;
     this.ballCenterPos = ball.worldCenterPos.copy().sub(0, this.worldStartY);
   }
 
