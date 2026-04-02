@@ -5,6 +5,9 @@ class DecorativeRectangle {
 
     this.hw = random() * (style.maxHW - style.minHW) + style.minHW;
     this.hh = random() * (style.maxHH - style.minHH) + style.minHH;
+    let sizeScale = map(width, 1920, 2560, style.minSizeScaleAt1080p, 1, true);
+    this.hw *= sizeScale;
+    this.hh *= sizeScale;
 
     this.color = style.color;
     this.biomeHeight = biomeHeight;
@@ -32,7 +35,7 @@ class DecorativeRectangle {
 }
 
 class DecorativeRectStyle {
-  constructor({ parallaxScale, isBackground, color, minHW, maxHW, minHH, maxHH, density }) {
+  constructor({ parallaxScale, isBackground, color, minHW, maxHW, minHH, maxHH, minSizeScaleAt1080p, density }) {
     this.parallaxScale = parallaxScale;
     this.isBackground = isBackground;
     this.color = color;
@@ -40,6 +43,7 @@ class DecorativeRectStyle {
     this.maxHW = maxHW;
     this.minHH = minHH;
     this.maxHH = maxHH;
+    this.minSizeScaleAt1080p = minSizeScaleAt1080p;
     this.density = density;
   }
 }

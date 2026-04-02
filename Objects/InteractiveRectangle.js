@@ -6,6 +6,9 @@ class InteractiveRectangle {
 
     this.hw = random() * (style.maxHW - style.minHW) + style.minHW;
     this.hh = random() * (style.maxHH - style.minHH) + style.minHH;
+    let sizeScale = map(width, 1920, 2560, style.minSizeScaleAt1080p, 1, true);
+    this.hw *= sizeScale;
+    this.hh *= sizeScale;
 
     this.colors = style.colors;
     this.colorIndex = 0;
@@ -48,12 +51,13 @@ class InteractiveRectangle {
 }
 
 class InteractiveRectStyle {
-  constructor({ colors, minHW, maxHW, minHH, maxHH, density }) {
+  constructor({ colors, minHW, maxHW, minHH, maxHH, minSizeScaleAt1080p, density }) {
     this.colors = colors;
     this.minHW = minHW;
     this.maxHW = maxHW;
     this.minHH = minHH;
     this.maxHH = maxHH;
+    this.minSizeScaleAt1080p = minSizeScaleAt1080p;
     this.density = density;
   }
 }
