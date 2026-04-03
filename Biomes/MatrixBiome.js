@@ -7,7 +7,6 @@ class MatrixBiome extends Biome {
   gapLine = 25;
   streamFontSize = 28;
 
-  ballCenterPos = createVector(0, 0);
   ballEffectRadius = 90;
   ballEffectStrength = 50;
 
@@ -18,7 +17,7 @@ class MatrixBiome extends Biome {
       50, // startOverlapHeight
       100, // startHeight
       100, // endHeight
-      0.5, // gravity
+      0.2, // gravity
       2 // maxVelocity
     );
 
@@ -42,10 +41,10 @@ class MatrixBiome extends Biome {
     }
   }
 
-  update(ball, topY) {
+  setBall(ball) {
+    this.ball = ball;
     this.ballEffectRadius = 2.25 * ball.radius;
     this.ballEffectStrength = 1.25 * ball.radius;
-    this.ballCenterPos = ball.worldCenterPos.copy().sub(0, this.worldStartY);
   }
 
   drawBodyBG(topY) {
@@ -75,6 +74,9 @@ class MatrixBiome extends Biome {
     let nbLinesAboveScreen = topY < 0 ? floor(-topY / this.gapLine) : 0;
     let firstY = topY + this.gapLine * (nbLinesAboveScreen + 1);
 
+    let ballScreenX = this.ball.worldCenterPos.x;
+    let ballScreenY = this.ball.worldCenterPos.y - this.worldStartY + topY;
+
     for (let lineIndex = 0; lineIndex < this.linesPerScreen; lineIndex++) {
       let bottomLineY = firstY + lineIndex * this.gapLine;
       let midLineY = bottomLineY - this.fontSize / 2;
@@ -84,8 +86,8 @@ class MatrixBiome extends Biome {
 
       // Print the text normally if the ball isn't near this line
       if (
-        midLineY < this.ballCenterPos.y + topY - this.ballEffectRadius ||
-        midLineY > this.ballCenterPos.y + topY + this.ballEffectRadius
+        midLineY < ballScreenY - this.ballEffectRadius ||
+        midLineY > ballScreenY + this.ballEffectRadius
       ) {
         text(lineText, 0, bottomLineY);
         continue;
@@ -107,10 +109,10 @@ class MatrixBiome extends Biome {
         let charWidth = textWidth(char);
         let charX = currentX + charWidth / 2;
         let charY = midLineY;
-        let d = dist(charX, charY, this.ballCenterPos.x, this.ballCenterPos.y + topY);
+        let d = dist(charX, charY, ballScreenX, ballScreenY);
         let force = map(d, 0, this.ballEffectRadius, this.ballEffectStrength, 0); // Stronger when closer
-        charX += ((charX - this.ballCenterPos.x) / d) * force;
-        charY += ((charY - this.ballCenterPos.y - topY) / d) * force;
+        charX += ((charX - ballScreenX) / d) * force;
+        charY += ((charY - ballScreenY) / d) * force;
         text(char, charX - charWidth / 2, charY + this.fontSize / 2);
         currentX += charWidth;
       }
@@ -128,7 +130,7 @@ class MatrixBiome extends Biome {
 
   drawStartFG(topY) {
     push();
-    colorMode(RGB)
+    colorMode(RGB);
     let pastelblue = color(115, 220, 255);
     let darkblue = color(4, 74, 214);
     let neongreen = color(0, 199, 53);
@@ -141,7 +143,7 @@ class MatrixBiome extends Biome {
       stroke(mergeColor);
       line(0, topY + i - this.startOverlapHeight, width, topY + i - this.startOverlapHeight);
     }
-    colorMode(HSB)
+    colorMode(HSB);
     pop();
   }
 
@@ -202,7 +204,7 @@ class MatrixBiome extends Biome {
 
   findCharsNearBall(topY, lineText, midLineY) {
     // Most characters have the same width in Courier, so we can use the ball's position to estimate the affected characters
-    let goodGuess = floor((this.ballCenterPos.x / width) * lineText.length);
+    let goodGuess = floor((this.ball.worldCenterPos.x / width) * lineText.length);
     let nearBall = this.isCharNearBall(topY, goodGuess, lineText, midLineY);
 
     // Sequential search isn't ideal, but in our case, the ball won't be far for the guess, so it should be fine
@@ -264,8 +266,9 @@ class MatrixBiome extends Biome {
 
   isCharNearBall(topY, charIndex, lineText, midLineY) {
     let charMiddleX = textWidth(lineText.substring(0, charIndex)) + textWidth(lineText[charIndex]) / 2;
-    let dx = this.ballCenterPos.x - charMiddleX;
-    let dy = this.ballCenterPos.y + topY - midLineY;
+    let ballScreenY = this.ball.worldCenterPos.y - this.worldStartY + topY;
+    let dx = this.ball.worldCenterPos.x - charMiddleX;
+    let dy = ballScreenY - midLineY;
     let distanceSq = dx * dx + dy * dy;
     return distanceSq < this.ballEffectRadius * this.ballEffectRadius;
   }

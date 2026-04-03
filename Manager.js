@@ -21,6 +21,10 @@ class Manager {
     this.currentBiome = this.biomes[0];
 
     this.ball = new Ball(width / 2, height / 3, this.totalWorldHeight);
+
+    for (let biome of this.biomes) {
+      biome.setBall(this.ball);
+    }
   }
 
   update() {
@@ -36,7 +40,7 @@ class Manager {
       let topY = biome.worldStartY - this.cameraWorldY;
       if (!biome.isOnScreen(topY)) continue;
 
-      biome.update(this.ball, topY);
+      biome.update(topY);
 
       if (!this.currentBiome && this.ball.worldCenterPos.y <= biome.worldStartY + biome.biomeHeight) {
         this.currentBiome = biome;
@@ -97,5 +101,8 @@ class Manager {
     this.cameraWorldY = 0;
     this.currentBiome = this.biomes[0];
     this.ball = new Ball(width / 2, height / 3, this.totalWorldHeight);
+    for (let biome of this.biomes) {
+      biome.setBall(this.ball);
+    }
   }
 }

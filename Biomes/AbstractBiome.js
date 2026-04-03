@@ -76,12 +76,12 @@ class AbstractBiome extends Biome {
     this.generateShapes();
   }
 
-  update(ball, topY) {
+  update(topY) {
     for (let shape of this.interactiveShapes) {
       if (!shape.isOnScreen(shape.localCenterY + topY)) continue;
-      if (!shape.collider.collidesWith(ball)) continue;
+      if (!shape.collider.collidesWith(this.ball)) continue;
 
-      shape.handleCollision(ball);
+      shape.handleCollision(this.ball);
     }
   }
 

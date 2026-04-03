@@ -31,15 +31,15 @@ class StartBiome extends Biome {
     pop();
   }
 
-  update(ball, topY) {
+  update(topY) {
     if (Manager.titleAnimFramesLeft > 0 && Manager.titleAnimFramesLeft <= this.originalFrames / 2) {
       let deltaAngle = PI / 4 / (this.originalFrames / 2);
       this.paddle1.rotate(deltaAngle);
       this.paddle2.rotate(-deltaAngle);
     }
 
-    if (this.paddle1.collider.collidesWith(ball)) this.paddle1.handleCollision(ball);
-    if (this.paddle2.collider.collidesWith(ball)) this.paddle2.handleCollision(ball);
+    if (this.paddle1.collider.collidesWith(this.ball)) this.paddle1.handleCollision(this.ball);
+    if (this.paddle2.collider.collidesWith(this.ball)) this.paddle2.handleCollision(this.ball);
   }
 
   drawBodyBG(topY) {

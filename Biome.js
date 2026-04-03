@@ -1,4 +1,5 @@
 class Biome {
+  ball; // Reference to the ball object for biome-specific interactions
   worldStartY; // World y coordinate where the biome starts, not including the start overlap
   biomeHeight; // Total biome height, including the start and end sections, but not including the start overlap
   startOverlapHeight; // Extra overlap height above the biome that extends over the previous biome that isn't counted in the biome height
@@ -63,7 +64,11 @@ class Biome {
     return topY - this.startOverlapHeight <= height && topY + this.biomeHeight >= 0;
   }
 
-  update(ball, topY) {}
+  setBall(ball) {
+    this.ball = ball;
+  }
+
+  update(topY) {}
   drawBodyBG(topY) {}
   drawBodyFG(topY) {}
   drawStartBG(topY) {}

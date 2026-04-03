@@ -143,8 +143,8 @@ class SpaceBiome extends Biome {
     }
   }
 
-  update(ball) {
-    let distFromCenter = abs(ball.worldCenterPos.y - this.biomeWorldCenterY);
+  update(topY) {
+    let distFromCenter = abs(this.ball.worldCenterPos.y - this.biomeWorldCenterY);
 
     if (distFromCenter < this.slowZoneCenter) {
       this.maxVelocity = this.slowMaxVelocity;
