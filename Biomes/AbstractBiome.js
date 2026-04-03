@@ -110,13 +110,6 @@ class AbstractBiome extends Biome {
     pop();
   }
 
-  drawEndFG(topY) {
-    push();
-    fill(240, 100, 80);
-    rect(0, topY + this.biomeHeight - this.endHeight, width, this.endHeight);
-    pop();
-  }
-
   drawBall(screenX, screenY, radius) {
     push();
     fill(140, 85, 100);

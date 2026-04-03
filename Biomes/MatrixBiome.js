@@ -5,6 +5,7 @@ class MatrixBiome extends Biome {
 
   fontSize = 18;
   gapLine = 25;
+  streamFontSize = 28;
 
   ballCenterPos = createVector(0, 0);
   ballEffectRadius = 90;
@@ -27,6 +28,18 @@ class MatrixBiome extends Biome {
     this.textBlockHeight = textBlockHeight;
     this.linesPerScreen = ceil(height / this.gapLine) + 1;
     this.ballEmoji = random(this.ballEmojis);
+
+    this.streams = [];
+    let columnWidth = 30; // The smaller, the more streams we have
+    for (let x = 0; x < width; x += columnWidth) {
+      this.streams.push({
+        x: x,
+        y: random(-500, this.biomeHeight),
+        speed: random(2, 8),
+        symbols: this.generateSymbols(floor(random(8, 20))),
+        switchInterval: floor(random(1, 3)),
+      });
+    }
   }
 
   update(ball, topY) {
@@ -105,49 +118,30 @@ class MatrixBiome extends Biome {
       fill(136, 100, 78); // Normal matrix green
       text(afterText, currentX, bottomLineY);
     }
-
     pop();
   }
 
   drawBodyFG(topY) {
-    // Static horizontal lines
-    push();
-    stroke(0, 0, 100, 0.4);
-    strokeWeight(2);
-    for (let y = 0; y < this.biomeHeight; y += 6) {
-      line(0, topY + y, width, topY + y);
-    }
-
-    // Refresh bar
-    noStroke();
-    // Use frameCount to move a bar down the screen
-    let scanlineY = (frameCount * 8) % this.biomeHeight;
-    fill(136, 100, 50, 0.25);
-    rect(0, topY + scanlineY, width, 100);
-
-    // Darker shadow bar right behind it
-    fill(0, 0, 0, 0.1);
-    rect(0, topY + scanlineY - 100, width, 50);
-
-    scanlineY = (frameCount * 8 + this.biomeHeight / 2) % this.biomeHeight;
-    fill(136, 100, 50, 0.25);
-    rect(0, topY + scanlineY, width, 100);
-    fill(0, 0, 0, 0.1);
-    rect(0, topY + scanlineY - 100, width, 50);
-    pop();
+    this.drawMatrixRain(topY);
+    this.drawScanLines(topY);
   }
 
   drawStartFG(topY) {
     push();
-    fill(150, 100, 30);
-    rect(0, topY - this.startOverlapHeight, width, this.startHeight + this.startOverlapHeight);
-    pop();
-  }
+    colorMode(RGB)
+    let pastelblue = color(115, 220, 255);
+    let darkblue = color(4, 74, 214);
+    let neongreen = color(0, 199, 53);
+    strokeWeight(2);
 
-  drawEndFG(topY) {
-    push();
-    fill(150, 100, 30);
-    rect(0, topY + this.biomeHeight - this.endHeight, width, this.endHeight);
+    let gradientHeight = this.startHeight + this.startOverlapHeight;
+    for (let i = 0; i < gradientHeight; i++) {
+      let mergeColor = lerpColor(pastelblue, darkblue, i / gradientHeight);
+      mergeColor = lerpColor(mergeColor, neongreen, i / gradientHeight);
+      stroke(mergeColor);
+      line(0, topY + i - this.startOverlapHeight, width, topY + i - this.startOverlapHeight);
+    }
+    colorMode(HSB)
     pop();
   }
 
@@ -293,5 +287,79 @@ class MatrixBiome extends Biome {
       if (nearBall) return startIndex;
       else return this.searchCharNearBall(topY, lineText, midLineY, nextIndex, direction, goal);
     }
+  }
+
+  generateSymbols(len) {
+    let symbols = [];
+    for (let i = 0; i < len; i++) {
+      symbols.push(String.fromCharCode(0x30a0 + floor(random(96))));
+    }
+    return symbols;
+  }
+
+  drawMatrixRain(topY) {
+    push();
+    textFont("Courier");
+    textSize(this.streamFontSize);
+    textStyle(BOLD);
+    textAlign(CENTER, TOP);
+
+    for (let stream of this.streams) {
+      let nbSymbols = stream.symbols.length;
+
+      stream.y += stream.speed;
+      if (stream.y > this.biomeHeight + this.streamFontSize * nbSymbols) stream.y = -500; // Reset to a random position above the screen
+
+      for (let symbol = 0; symbol < nbSymbols; symbol++) {
+        let symbolY = topY + stream.y - symbol * this.streamFontSize;
+
+        if (symbolY < topY - 50 || symbolY > topY + this.biomeHeight + 50) continue;
+
+        if (symbol === 0) {
+          fill(120, 30, 100);
+        } else {
+          let fade = map(symbol, 0, nbSymbols, 100, 20);
+          fill(120, 100, fade, 0.8);
+        }
+
+        // Randomly switch characters at intervals
+        if (frameCount % stream.switchInterval === 0 && random() > 0.95) {
+          stream.symbols[symbol] = String.fromCharCode(0x30a0 + floor(random(96)));
+        }
+
+        text(stream.symbols[symbol], stream.x, symbolY);
+      }
+    }
+    pop();
+  }
+
+  drawScanLines(topY) {
+    push();
+    // Static horizontal lines
+    stroke(0, 0, 100, 0.4);
+    strokeWeight(2);
+    for (let y = 0; y < this.biomeHeight; y += 6) {
+      line(0, topY + y, width, topY + y);
+    }
+    noStroke();
+
+    // Use frameCount to move a bar down the screen
+    let scanlineY = (frameCount * 8) % this.biomeHeight;
+    let shadowY = max(topY + scanlineY - 100, topY);
+
+    // Green scanline
+    fill(136, 100, 50, 0.25);
+    rect(0, topY + scanlineY, width, 100);
+    // Darker shadow bar
+    fill(0, 0, 0, 0.1);
+    rect(0, shadowY, width, 50);
+
+    scanlineY = (frameCount * 8 + this.biomeHeight / 2) % this.biomeHeight;
+    shadowY = max(topY + scanlineY - 100, topY);
+    fill(136, 100, 50, 0.25);
+    rect(0, topY + scanlineY, width, 100);
+    fill(0, 0, 0, 0.1);
+    rect(0, shadowY, width, 50);
+    pop();
   }
 }
