@@ -5,11 +5,11 @@ class MatrixBiome extends Biome {
 
   fontSize = 18;
   gapLine = 25;
-  streamFontSize = 28;
+  streamFontSize = 24;
 
-  ballEffectRadius = 90;
-  ballEffectStrength = 50;
-
+  ballEffectRadiusMult = 3;
+  ballEffectStrengthMult = 1.4;
+  
   constructor(worldStartY) {
     super(
       worldStartY,
@@ -43,8 +43,8 @@ class MatrixBiome extends Biome {
 
   setBall(ball) {
     this.ball = ball;
-    this.ballEffectRadius = 2.25 * ball.radius;
-    this.ballEffectStrength = 1.25 * ball.radius;
+    this.ballEffectRadius = this.ballEffectRadiusMult * ball.radius;
+    this.ballEffectStrength = this.ballEffectStrengthMult * ball.radius;
   }
 
   drawBodyBG(topY) {
