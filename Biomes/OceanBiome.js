@@ -1,5 +1,5 @@
 class OceanBiome extends Biome {
-  ballEmojis = ["🐡", "🐟", "🐠", "🐙", "🏐"]; // todo: change this
+  ballEmojis = ["🐡", "🐟", "🐠", "🐙"];
   ballEmoji = "";
 
   // Sand and water wave parameters
@@ -21,8 +21,8 @@ class OceanBiome extends Biome {
       worldStartY,
       2000, // biomeHeight
       50, // startOverlapHeight
-      500, // startHeight
-      100, // endHeight
+      400, // startHeight
+      400, // endHeight
       0.5, // gravity
       3 // maxVelocity
     );
@@ -38,21 +38,15 @@ class OceanBiome extends Biome {
 
   drawBodyBG(topY) {
     push();
-    for (let i = 0; i < 10; i++) {
-      let segmentH = this.biomeHeight / 10;
-      let inter = map(i, 0, 10, 0, 1);
-      let c = lerpColor(color(205, 100, 100), color(225, 100, 30), inter);
-      fill(c);
-      noStroke();
-      rect(0, topY + i * segmentH, width, segmentH + 1);
-    }
+    fill(190, 100, 100);
+    rect(0, topY, width, this.biomeHeight);
     pop();
   }
 
   drawStartFG(topY) {
     push();
 
-    let { sandTop, sandBottom, waterTop, waterBottom } = this.getShoreCoordinates(topY);
+    let { sandTop, sandBottom, waterTop } = this.getShoreCoordinates(topY);
     let sandWaves = [];
     let waterWaves = [];
     for (let i = 0; i <= this.waveSegments; i++) {
@@ -62,16 +56,14 @@ class OceanBiome extends Biome {
     }
 
     this.drawSand(topY, sandWaves, sandTop, sandBottom);
-    this.drawWater(topY, waterWaves, waterTop, waterBottom);
+    this.drawWater(waterWaves, waterTop, sandWaves, sandBottom);
     this.drawRisingBobas(topY, waterTop);
 
     pop();
+  }
 
-    // noFill();
-    // strokeWeight(4);
-    // stroke(0, 0, 0)
-    // rect(0, topY, width, this.startHeight);
-    // pop();
+  drawEndFG(topY) {
+    this.drawWaveTransition(topY + this.biomeHeight - 95);
   }
 
   drawBall(screenX, screenY, radius) {
@@ -86,8 +78,7 @@ class OceanBiome extends Biome {
     return {
       sandTop: topY - this.startOverlapHeight,
       sandBottom: topY + this.startHeight / 2,
-      waterTop: topY + this.startHeight / 2 - this.waterOverlap,
-      waterBottom: topY + this.startHeight,
+      waterTop: topY + this.startHeight / 2 - this.waterOverlap
     };
   }
 
@@ -106,7 +97,7 @@ class OceanBiome extends Biome {
 
   drawSand(topY, sandWaves, sandTop, sandBottom) {
     noStroke();
-    fill(40, 38, 92); // todo: gradient?
+    fill(40, 38, 92);
 
     beginShape();
     vertex(0, sandBottom);
@@ -135,14 +126,15 @@ class OceanBiome extends Biome {
     endShape();
   }
 
-  drawWater(topY, waterWaves, waterTop, waterBottom) {
+  drawWater(waterWaves, waterTop, sandWaves, sandBottom) {
     // Shore water
     noStroke();
-    fill(174, 70, 88, 0.8); // todo: gradient?
+    fill(190, 100, 100, 0.7);
     beginShape();
-    vertex(0, waterBottom);
     for (let p of waterWaves) vertex(p.x, waterTop + p.y);
-    vertex(width, waterBottom);
+    for (let i = sandWaves.length - 1; i >= 0; i--) {
+      vertex(sandWaves[i].x, sandBottom + sandWaves[i].y); // Bottom wavy edge of sand
+    }
     endShape(CLOSE);
 
     // Sea foam bubbles
@@ -209,5 +201,31 @@ class OceanBiome extends Biome {
         speed: random(1, 3),
       });
     }
+  }
+
+  drawWaveTransition(yAnchor) {
+    push();
+    noStroke();
+
+    const waveLayers = 3;
+    let layerGap = 70;
+    let layerOffset = 0;
+    for (let l = 0; l < waveLayers; l++) {
+      let h = map(l, 0, waveLayers - 1, 200, 200);
+      let b = map(l, 0, waveLayers - 1, 80, 100);
+      let a = map(l, 0, waveLayers - 1, 0.5, 0.1);
+      fill(h, 100, b, a);
+
+      for (let x = -100; x < width + 100; x += 40) {
+        let n = noise(x * 0.008, l * 0.5);
+        let waveSize = (n + 1) * 4 * layerGap;
+        let verticalDrift = n * 120;
+
+        let finalY = yAnchor - layerOffset - verticalDrift + 60;
+        ellipse(x, finalY, waveSize * 0.9, waveSize * 0.4);
+      }
+      layerOffset += layerGap;
+    }
+    pop();
   }
 }
