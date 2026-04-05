@@ -1,7 +1,7 @@
 const ASPECT_RATIO = 0.7; // Smaller aspect ratio for a skinnier canvas
 let paused = false;
 let manager;
-let lastStartButtonPressed = false; // To pause 
+let lastStartButtonPressed = false; // To pause
 
 let rawTextCode;
 
@@ -80,20 +80,25 @@ function handleGamepad() {
   let gamepads = navigator.getGamepads();
   let gp = gamepads[0];
 
-  if (gp) {
-    let force = 10;
-    let deadzone = 0.4;
-
-    let xAxis = gp.axes[0];
-    let yAxis = gp.axes[1];
-    if (abs(xAxis) > deadzone) manager.pushBall(xAxis * force, 0);
-    if (abs(yAxis) > deadzone) manager.pushBall(0, yAxis * force);
-
-    let startPressed = gp.buttons[9].pressed;
-    if (startPressed && !lastStartButtonPressed) paused = !paused;
-    lastStartButtonPressed = startPressed;
-
-    if (gp.buttons[0].pressed) manager.userInput(); // Button A to begin animation
-    // if (gp.buttons[1].pressed) // Button B for explosions
+  if (!gp) {
+    StartBiome.controllerConnected = false;
+    return;
   }
+
+  StartBiome.controllerConnected = true;
+
+  let force = 10;
+  let deadzone = 0.4;
+
+  let xAxis = gp.axes[0];
+  let yAxis = gp.axes[1];
+  if (abs(xAxis) > deadzone) manager.pushBall(xAxis * force, 0);
+  if (abs(yAxis) > deadzone) manager.pushBall(0, yAxis * force);
+
+  let startPressed = gp.buttons[9].pressed;
+  if (startPressed && !lastStartButtonPressed) paused = !paused;
+  lastStartButtonPressed = startPressed;
+
+  if (gp.buttons.slice(0, 4).some(btn => btn.pressed)) manager.userInput(); // Click any buttons (ABXY) to begin
+  // if (gp.buttons[1].pressed) // Button B for explosions
 }
