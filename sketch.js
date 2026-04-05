@@ -1,6 +1,7 @@
 const ASPECT_RATIO = 0.7; // Smaller aspect ratio for a skinnier canvas
 let paused = false;
 let manager;
+let lastStartButtonPressed = false; // To pause 
 
 let rawTextCode;
 
@@ -23,9 +24,21 @@ function setup() {
     .replace(/\p{Emoji_Presentation}/gu, ""); // Remove emojis
 
   manager = new Manager();
+
+  // Todo: to test with PS controller
+  window.addEventListener("gamepadconnected", (e) => {
+    console.log(
+      "Gamepad connected at index %d: %s. %d buttons, %d axes.",
+      e.gamepad.index,
+      e.gamepad.id,
+      e.gamepad.buttons.length,
+      e.gamepad.axes.length
+    );
+  });
 }
 
 function draw() {
+  handleGamepad();
   if (paused) return;
   manager.update();
   manager.drawScene();
@@ -61,4 +74,26 @@ function keyPressed() {
 
 function mouseClicked() {
   manager.userInput();
+}
+
+function handleGamepad() {
+  let gamepads = navigator.getGamepads();
+  let gp = gamepads[0];
+
+  if (gp) {
+    let force = 10;
+    let deadzone = 0.4;
+
+    let xAxis = gp.axes[0];
+    let yAxis = gp.axes[1];
+    if (abs(xAxis) > deadzone) manager.pushBall(xAxis * force, 0);
+    if (abs(yAxis) > deadzone) manager.pushBall(0, yAxis * force);
+
+    let startPressed = gp.buttons[9].pressed;
+    if (startPressed && !lastStartButtonPressed) paused = !paused;
+    lastStartButtonPressed = startPressed;
+
+    if (gp.buttons[0].pressed) manager.userInput(); // Button A to begin animation
+    // if (gp.buttons[1].pressed) // Button B for explosions
+  }
 }
