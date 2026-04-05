@@ -10,7 +10,7 @@ class Manager {
   idleFrames = 0;
 
   constructor() {
-    const biomes = [StartBiome, AbstractBiome, MatrixBiome, SpaceBiome];
+    const biomes = [StartBiome, AbstractBiome, MatrixBiome, OceanBiome, SpaceBiome];
     let currentWorldY = 0;
 
     for (let BiomeClass of biomes) {

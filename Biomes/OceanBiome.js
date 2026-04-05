@@ -16,6 +16,14 @@ class OceanBiome extends Biome {
   bobaFreq = 0.05;
   bobaAmp = 10;
 
+  // Flow field parameters
+  CELL_SIZE = 150;
+  NOISE_SCALE = 0.05;
+  NOISE_TIME_SPEED = 0.05;
+  FLOW_MAGNITUDE = 1;
+  NB_PARTICLES = 5000;
+  timeOffset = 0;
+
   constructor(worldStartY) {
     super(
       worldStartY,
@@ -23,17 +31,52 @@ class OceanBiome extends Biome {
       50, // startOverlapHeight
       400, // startHeight
       400, // endHeight
-      0.5, // gravity
-      3 // maxVelocity
+      0.1, // gravity
+      2 // maxVelocity
     );
     this.sandSeed = random(1000);
     this.waterSeed = random(1000);
     this.bobaSeed = random(1000);
 
     this.ballEmoji = random(this.ballEmojis);
-    this.generateSand();
+
+    let { sandBottom, sandTop } = this.getShoreCoordinates(this.startOverlapHeight);
+    this.generateSand(sandTop, sandBottom);
     this.generateSeaFoamBoba();
     this.generateRisingBoba();
+
+    this.sandBuffer = createGraphics(width, this.startHeight + this.startOverlapHeight);
+    this.sandBuffer.colorMode(HSB);
+
+    this.sandWaves = [];
+    for (let i = 0; i <= this.waveSegments; i++) {
+      let x = (i / this.waveSegments) * width;
+      this.sandWaves.push({ x, y: this.computeWaveOffset("sand", x) });
+    }
+    this.drawSandBuffer(this.sandWaves, sandTop, sandBottom);
+
+    this.particleBuffer = createGraphics(width, this.biomeHeight);
+    this.particleBuffer.colorMode(HSB);
+
+    this.rows = ceil(this.biomeHeight / this.CELL_SIZE);
+    this.cols = ceil(width / this.CELL_SIZE);
+    this.flowField = Array.from({ length: this.rows }, () =>
+      Array.from({ length: this.cols }, () => createVector(0, 0))
+    );
+    this.computeFlowField();
+
+    this.particles = [];
+    for (let i = 0; i < this.NB_PARTICLES; i++) {
+      this.particles.push(new Particle(this.biomeHeight, this.CELL_SIZE, this.rows, this.cols));
+    }
+  }
+
+  update(topY) {
+    if (frameCount % 5 === 0) {
+      this.computeFlowField(); // Recompute flow field for dynamic movement
+    }
+    let ballBiomePosition = createVector(this.ball.worldCenterPos.x, this.ball.worldCenterPos.y - this.worldStartY);
+    this.particles.forEach((p) => p.update(topY, this.flowField, ballBiomePosition, this.ball.radius));
   }
 
   drawBodyBG(topY) {
@@ -41,22 +84,24 @@ class OceanBiome extends Biome {
     fill(190, 100, 100);
     rect(0, topY, width, this.biomeHeight);
     pop();
+
+    this.particleBuffer.background(190, 100, 100, 0.1);
+    this.particles.forEach((p) => p.draw(topY, this.particleBuffer));
+    image(this.particleBuffer, 0, topY); // Draw the particle canvas onto the main canvas
   }
 
   drawStartFG(topY) {
     push();
 
-    let { sandTop, sandBottom, waterTop } = this.getShoreCoordinates(topY);
-    let sandWaves = [];
+    let { sandBottom, waterTop } = this.getShoreCoordinates(topY);
     let waterWaves = [];
     for (let i = 0; i <= this.waveSegments; i++) {
       let x = (i / this.waveSegments) * width;
-      sandWaves.push({ x, y: this.computeWaveOffset("sand", x) });
       waterWaves.push({ x, y: this.computeWaveOffset("water", x) });
     }
 
-    this.drawSand(topY, sandWaves, sandTop, sandBottom);
-    this.drawWater(waterWaves, waterTop, sandWaves, sandBottom);
+    image(this.sandBuffer, 0, topY - this.startOverlapHeight);
+    this.drawWater(waterWaves, waterTop, this.sandWaves, sandBottom);
     this.drawRisingBobas(topY, waterTop);
 
     pop();
@@ -76,9 +121,9 @@ class OceanBiome extends Biome {
 
   getShoreCoordinates(topY) {
     return {
-      sandTop: topY - this.startOverlapHeight,
+      sandTop: topY - this.startOverlapHeight / 2,
       sandBottom: topY + this.startHeight / 2,
-      waterTop: topY + this.startHeight / 2 - this.waterOverlap
+      waterTop: topY + this.startHeight / 2 - this.waterOverlap,
     };
   }
 
@@ -95,35 +140,35 @@ class OceanBiome extends Biome {
     }
   }
 
-  drawSand(topY, sandWaves, sandTop, sandBottom) {
-    noStroke();
-    fill(40, 38, 92);
+  drawSandBuffer(sandWaves, sandTop, sandBottom) {
+    this.sandBuffer.noStroke();
+    this.sandBuffer.fill(40, 38, 92);
 
-    beginShape();
-    vertex(0, sandBottom);
-    for (let p of sandWaves) vertex(p.x, sandTop + p.y); // Top wavy edge
-    vertex(width, sandBottom);
+    this.sandBuffer.beginShape();
+    this.sandBuffer.vertex(0, sandBottom);
+    for (let p of sandWaves) this.sandBuffer.vertex(p.x, sandTop + p.y); // Top wavy edge
+    this.sandBuffer.vertex(width, sandBottom);
     for (let i = sandWaves.length - 1; i >= 0; i--) {
-      vertex(sandWaves[i].x, sandBottom + sandWaves[i].y); // Bottom wavy edge
+      this.sandBuffer.vertex(sandWaves[i].x, sandBottom + sandWaves[i].y); // Bottom wavy edge
     }
-    endShape(CLOSE);
+    this.sandBuffer.endShape(CLOSE);
 
     // Sand texture
     for (let i = 0; i < this.sand.length; i++) {
       let { x: grainX, y: grainY, tone, sWeight } = this.sand[i];
-      stroke(40 + tone, 38 + tone, 92 + tone);
-      strokeWeight(sWeight);
-      point(grainX, grainY + topY);
+      this.sandBuffer.stroke(40 + tone, 38 + tone, 92 + tone);
+      this.sandBuffer.strokeWeight(sWeight);
+      this.sandBuffer.point(grainX, grainY);
     }
 
     // Top wet sand edge
-    noFill();
-    stroke(38, 44, 70);
-    strokeWeight(4);
+    this.sandBuffer.noFill();
+    this.sandBuffer.stroke(38, 44, 70);
+    this.sandBuffer.strokeWeight(4);
 
-    beginShape();
-    for (let p of sandWaves) vertex(p.x, sandTop + p.y);
-    endShape();
+    this.sandBuffer.beginShape();
+    for (let p of sandWaves) this.sandBuffer.vertex(p.x, sandTop + p.y);
+    this.sandBuffer.endShape();
   }
 
   drawWater(waterWaves, waterTop, sandWaves, sandBottom) {
@@ -161,18 +206,18 @@ class OceanBiome extends Biome {
     pop();
   }
 
-  generateSand() {
+  generateSand(sandTop, sandBottom) {
     this.sand = [];
     for (let i = 0; i < this.grainDensity; i++) {
       let grainX = random(width);
-      let grainY = random(-this.startOverlapHeight - this.sandAmp, this.startHeight / 2 + this.sandAmp);
+      let grainY = random(sandTop - this.sandAmp, sandBottom + this.sandAmp);
 
       let tone = random(-20, 20);
       let sWeight = random(1, 3);
 
-      let waveTop = -this.startOverlapHeight + this.computeWaveOffset("sand", grainX);
-      let waveBottom = this.startHeight / 2 + this.computeWaveOffset("sand", grainX);
-      if (grainY >= waveTop && grainY <= waveBottom) {
+      let waveTop = sandTop + this.computeWaveOffset("sand", grainX);
+      let waveBottom = sandBottom + this.computeWaveOffset("sand", grainX);
+      if (grainY >= waveTop + sWeight && grainY <= waveBottom - sWeight) {
         this.sand.push({ x: grainX, y: grainY, tone, sWeight });
       }
     }
@@ -227,5 +272,16 @@ class OceanBiome extends Biome {
       layerOffset += layerGap;
     }
     pop();
+  }
+
+  computeFlowField() {
+    for (let rowInd = 0; rowInd < this.rows; rowInd++) {
+      for (let colInd = 0; colInd < this.cols; colInd++) {
+        // Create angles between pi and 2 pi based on Perlin noise at each cell so it flows upwards
+        let angle = noise(rowInd * this.NOISE_SCALE, colInd * this.NOISE_SCALE, this.timeOffset) * PI + PI;
+        this.flowField[rowInd][colInd].set(cos(angle) * this.FLOW_MAGNITUDE, sin(angle) * this.FLOW_MAGNITUDE);
+      }
+    }
+    this.timeOffset += this.NOISE_TIME_SPEED; // Increment the time offset to create evolving noise over time
   }
 }
