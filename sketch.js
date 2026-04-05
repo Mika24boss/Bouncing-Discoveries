@@ -88,12 +88,13 @@ function handleGamepad() {
   StartBiome.controllerConnected = true;
 
   let force = 10;
-  let deadzone = 0.4;
+  let deadzone = 0.25;
 
   let xAxis = gp.axes[0];
   let yAxis = gp.axes[1];
-  if (abs(xAxis) > deadzone) manager.pushBall(xAxis * force, 0);
-  if (abs(yAxis) > deadzone) manager.pushBall(0, yAxis * force);
+
+  let stickMag = sqrt(xAxis * xAxis + yAxis * yAxis);
+  if (stickMag > deadzone) manager.pushBall(xAxis * force, yAxis * force);
 
   let startPressed = gp.buttons[9].pressed;
   if (startPressed && !lastStartButtonPressed) paused = !paused;
