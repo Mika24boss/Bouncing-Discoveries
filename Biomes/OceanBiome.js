@@ -21,7 +21,7 @@ class OceanBiome extends Biome {
   NOISE_SCALE = 0.05;
   NOISE_TIME_SPEED = 0.05;
   FLOW_MAGNITUDE = 1;
-  NB_PARTICLES = 5000;
+  NB_PARTICLES = 6000;
   timeOffset = 0;
 
   constructor(worldStartY) {

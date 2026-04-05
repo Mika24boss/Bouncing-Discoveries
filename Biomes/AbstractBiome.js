@@ -61,19 +61,21 @@ class AbstractBiome extends Biome {
   layersBG = [];
   layersFG = [];
   interactiveShapes = [];
+  transitionRects = [];
 
   constructor(worldStartY) {
     super(
       worldStartY,
       5000, // biomeHeight
-      50, // startOverlapHeight
-      100, // startHeight
+      150, // startOverlapHeight
+      150, // startHeight
       100, // endHeight
       0.3, // gravity
       20 // maxVelocity
     );
 
     this.generateShapes();
+    this.generateTransitionRects();
   }
 
   update(topY) {
@@ -105,9 +107,12 @@ class AbstractBiome extends Biome {
 
   drawStartFG(topY) {
     push();
-    fill(120, 100, 80);
-    rect(0, topY - this.startOverlapHeight, width, this.startHeight + this.startOverlapHeight);
-    pop();
+    noStroke();
+
+    for (let r of this.transitionRects) {
+      fill(r.color);
+      rect(r.x, topY + r.topEdge, r.width, r.height);
+    }
   }
 
   drawBall(screenX, screenY, radius) {
@@ -121,6 +126,7 @@ class AbstractBiome extends Biome {
 
   reset() {
     this.generateShapes();
+    this.generateTransitionRects();
   }
 
   generateShapes() {
@@ -148,5 +154,46 @@ class AbstractBiome extends Biome {
         this.interactiveShapes.push(newShape);
       }
     }
+  }
+
+  generateTransitionRects() {
+    this.transitionRects = [];
+    let currentX = 0;
+    const colorChoices = [
+      color(51, 45, 100, 0.8),
+      color(120, 46, 95, 0.8),
+      color(223, 80, 95, 0.8),
+      color(260, 53, 100, 0.8),
+    ];
+    while (currentX < width) {
+      let rectWidth = random(60, 120);
+      let topEdge = -random(this.startOverlapHeight / 3, this.startOverlapHeight);
+      let bottomEdge = random(this.startHeight / 10, this.startHeight / 3);
+
+      this.transitionRects.push({
+        x: currentX,
+        width: rectWidth,
+        height: bottomEdge - topEdge,
+        topEdge: topEdge,
+        color: random(colorChoices)
+      });
+      currentX += rectWidth - random(10, 30);
+    }
+    currentX = 0;
+    while (currentX < width) {
+      let rectWidth = random(60, 120);
+      let topEdge = -random(this.startOverlapHeight / 10, this.startOverlapHeight / 3);
+      let bottomEdge = random(this.startHeight / 3, this.startHeight);
+
+      this.transitionRects.push({
+        x: currentX,
+        width: rectWidth,
+        height: bottomEdge - topEdge,
+        topEdge: topEdge,
+        color: random(colorChoices)
+      });
+      currentX += rectWidth - random(10, 30);
+    }
+    this.transitionRects.sort(() => random() - 0.5)
   }
 }

@@ -133,7 +133,7 @@ class MatrixBiome extends Biome {
     colorMode(RGB);
     let pastelblue = color(115, 220, 255);
     let darkblue = color(4, 74, 214);
-    let neongreen = color(0, 199, 53);
+    let neongreen = color(0, 199, 53, 200);
     strokeWeight(2);
 
     let gradientHeight = this.startHeight + this.startOverlapHeight;
