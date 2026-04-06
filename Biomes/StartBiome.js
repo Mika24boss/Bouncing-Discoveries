@@ -170,6 +170,8 @@ class StartBiome extends Biome {
   }
 
   drawBallPoolBuffer() {
+    this.ballPoolBuffer.clear();
+
     this.ballPoolBuffer.push();
     this.ballPoolBuffer.fill(0);
     this.ballPoolBuffer.rect(
@@ -222,60 +224,58 @@ class StartBiome extends Biome {
   }
 
   drawStartPrompt() {
-    if (this.fadeOutFrames > 0) {
-      push();
-      let progress = this.fadeOutFrames / this.originalFadeOutFrames;
-      let alphaPrompt = pow(progress, 2);
-      let promptY = this.titleY + 100;
-      let pulse = map(sin(frameCount * 0.1), -1, 1, 0.3, 1);
-      let finalAlpha = alphaPrompt * pulse;
+    if (this.fadeOutFrames <= 0) return;
 
-      textFont(StartBiome.titleFont);
-      textSize(22);
+    push();
+    let progress = this.fadeOutFrames / this.originalFadeOutFrames;
+    let alphaPrompt = pow(progress, 2);
+    let promptY = this.titleY + 100;
+    let pulse = map(sin(frameCount * 0.1), -1, 1, 0.3, 1);
+    let finalAlpha = alphaPrompt * pulse;
 
-      let txt1 = "PRESS  ";
-      let txt2 = "ANY BUTTON/KEY";
-      let txt3 = "  TO START";
+    textFont(StartBiome.titleFont);
+    textSize(22);
 
-      let w1 = textWidth(txt1);
-      let w2 = textWidth(txt2) + 35; // Add padding for the rectangle
-      let rectHeight = 40;
-      let w3 = textWidth(txt3);
-      let totalW = w1 + w2 + w3;
-      let startX = (width - totalW) / 2;
+    let txt1 = "PRESS  ";
+    let txt2 = "ANY BUTTON/KEY";
+    let txt3 = "  TO START";
 
-      // Draw "PRESS  "
-      fill(0, finalAlpha);
-      noStroke();
-      text(txt1, startX + w1 / 2, promptY);
+    let w1 = textWidth(txt1);
+    let w2 = textWidth(txt2) + 35; // Add padding for the rectangle
+    let rectHeight = 40;
+    let w3 = textWidth(txt3);
+    let totalW = w1 + w2 + w3;
+    let startX = (width - totalW) / 2;
 
-      // Draw the rounded rectangle
-      let rectX = startX + w1 + w2 / 2;
-      rectMode(CENTER);
-      fill(0, 0, 0, finalAlpha);
-      stroke(255, finalAlpha);
-      strokeWeight(4);
-      rect(rectX, promptY + 3.5, w2, rectHeight, 50);
+    // Draw "PRESS  "
+    fill(0, finalAlpha);
+    noStroke();
+    text(txt1, startX + w1 / 2, promptY);
 
-      // Draw "ANY BUTTON/KEY"
-      fill(119, 90, 70, finalAlpha);
-      noStroke();
-      text(txt2, rectX, promptY);
+    // Draw the rounded rectangle
+    let rectX = startX + w1 + w2 / 2;
+    rectMode(CENTER);
+    fill(0, 0, 0, finalAlpha);
+    stroke(255, finalAlpha);
+    strokeWeight(4);
+    rect(rectX, promptY + 3.5, w2, rectHeight, 50);
 
-      // Draw "  TO START"
-      fill(0, finalAlpha);
-      text(txt3, startX + w1 + w2 + w3 / 2, promptY);
+    // Draw "ANY BUTTON/KEY"
+    fill(119, 90, 70, finalAlpha);
+    noStroke();
+    text(txt2, rectX, promptY);
 
-      pop();
-    }
+    // Draw "  TO START"
+    fill(0, finalAlpha);
+    text(txt3, startX + w1 + w2 + w3 / 2, promptY);
+
+    pop();
   }
 
   reset() {
     this.fadeOutFrames = this.originalFadeOutFrames;
     this.generateColors();
     this.generateClawAndDropper();
-    this.ballPoolBuffer = createGraphics(width, this.biomeHeight);
-    this.ballPoolBuffer.colorMode(HSB);
     this.generateBallPool();
     this.drawBallPoolBuffer();
   }

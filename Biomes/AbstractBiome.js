@@ -114,6 +114,7 @@ class AbstractBiome extends Biome {
       fill(r.color);
       rect(r.x, topY + r.topEdge, r.width, r.height);
     }
+    pop();
   }
 
   drawBall(screenX, screenY, radius) {

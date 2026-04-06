@@ -5,7 +5,7 @@ class Manager {
   cameraWorldY = 0;
   lerpSpeed = 0.1; // Adjust smoothing factor for camera movement
   currentBiome = null;
-  idleRestartTime = 1000; // Frames until auto-restart when idle
+  idleRestartTime = 600; // Frames until auto-restart when idle
   idleFrames = 0;
 
   constructor() {

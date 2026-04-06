@@ -38,8 +38,8 @@ class SpaceBiome extends Biome {
   slowMaxVelocity = 0.5;
 
   // Static asteroids
-  numStaticAsteroidsBG = 8; // Number of static asteroids in the background
-  numStaticAsteroidsFG = 8; // Number of static asteroids in the foreground
+  numStaticAsteroidsBG = 12; // Number of static asteroids in the background
+  numStaticAsteroidsFG = 12; // Number of static asteroids in the foreground
   staticBeltHeight = 400; // Height of the static asteroid belt
 
   constructor(worldStartY, ball) {

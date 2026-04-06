@@ -25,32 +25,41 @@ class OceanBiome extends Biome {
   timeOffset = 0;
 
   NB_FISHIES = 20;
-  fishies = [];
 
   constructor(worldStartY, ball) {
     super(
       worldStartY,
       3500, // biomeHeight
-      50, // startOverlapHeight
+      100, // startOverlapHeight
       400, // startHeight
       400, // endHeight
       0.1, // gravity
       2, // maxVelocity
       ball
     );
+    this.sandBuffer = createGraphics(width, this.startHeight + this.startOverlapHeight);
+    this.sandBuffer.colorMode(HSB);
+
+    this.particleBuffer = createGraphics(width, this.biomeHeight);
+    this.particleBuffer.colorMode(HSB);
+
+    this.initBiome();
+  }
+
+  initBiome() {
     this.sandSeed = random(1000);
     this.waterSeed = random(1000);
     this.bobaSeed = random(1000);
-
+    this.timeOffset = random(1000);
     this.ballEmoji = random(this.ballEmojis);
+    
+    this.sandBuffer.clear();
+    this.particleBuffer.clear();
 
     let { sandBottom, sandTop } = this.getShoreCoordinates(this.startOverlapHeight);
     this.generateSand(sandTop, sandBottom);
     this.generateSeaFoamBoba();
     this.generateRisingBoba();
-
-    this.sandBuffer = createGraphics(width, this.startHeight + this.startOverlapHeight);
-    this.sandBuffer.colorMode(HSB);
 
     this.sandWaves = [];
     for (let i = 0; i <= this.waveSegments; i++) {
@@ -58,9 +67,6 @@ class OceanBiome extends Biome {
       this.sandWaves.push({ x, y: this.computeWaveOffset("sand", x) });
     }
     this.drawSandBuffer(this.sandWaves, sandTop, sandBottom);
-
-    this.particleBuffer = createGraphics(width, this.biomeHeight);
-    this.particleBuffer.colorMode(HSB);
 
     this.rows = ceil(this.biomeHeight / this.CELL_SIZE);
     this.cols = ceil(width / this.CELL_SIZE);
@@ -74,7 +80,7 @@ class OceanBiome extends Biome {
       this.particles.push(new Particle(this.biomeHeight, this.CELL_SIZE, this.rows, this.cols));
     }
 
-    // Initialize fishes
+    this.fishies = [];
     for (let i = 0; i < this.NB_FISHIES; i++) {
       this.fishies.push(new Fish(this.biomeHeight, this.CELL_SIZE, this.rows, this.cols));
     }
@@ -297,5 +303,9 @@ class OceanBiome extends Biome {
       }
     }
     this.timeOffset += this.NOISE_TIME_SPEED; // Increment the time offset to create evolving noise over time
+  }
+
+  reset() {
+    this.initBiome();
   }
 }

@@ -29,7 +29,7 @@ class Asteroid {
     this.isBackground = isBackground;
     if (this.isBackground) {
       this.color = color(230, 0, random(8, 16));
-      if (!radius) this.radius = random(5, 12);
+      if (!radius) this.radius = random(10, 18);
 
       // Left spawn
       if (positionRndNumber > -1 && positionRndNumber < 0.5) {
@@ -47,7 +47,7 @@ class Asteroid {
     } else {
       // Foreground
       this.color = color(230, 5, random(30, 55));
-      if (!radius) this.radius = random(15, 30);
+      if (!radius) this.radius = random(20, 35);
 
       // Left spawn
       if (positionRndNumber > -1 && positionRndNumber < 0.5) {
