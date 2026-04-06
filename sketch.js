@@ -1,7 +1,7 @@
 const ASPECT_RATIO = 0.7; // Smaller aspect ratio for a skinnier canvas
 let paused = false;
 let manager;
-let lastStartButtonPressed = false; // To pause
+let pauseButtonCurrentlyPressed = false; // To pause
 
 let rawTextCode;
 
@@ -45,8 +45,8 @@ function draw() {
 }
 
 function keyPressed() {
-  manager.userInput();
-  if (Manager.titleAnimFramesLeft > 0) return;
+  manager.userInput(true);
+  if (Manager.state !== "PLAYING") return;
 
   let force = 10;
   switch (keyCode) {
@@ -73,19 +73,18 @@ function keyPressed() {
 }
 
 function mouseClicked() {
-  manager.userInput();
+  manager.userInput(true);
 }
 
 function handleGamepad() {
   let gamepads = navigator.getGamepads();
   let gp = gamepads[0];
 
-  if (!gp) {
-    StartBiome.controllerConnected = false;
-    return;
-  }
+  if (!gp) return;
 
-  StartBiome.controllerConnected = true;
+  if (gp.buttons.slice(0, 4).some((btn) => btn.pressed)) manager.userInput(true); // Click any buttons (ABXY) to begin
+
+  if (Manager.state !== "PLAYING") return;
 
   let force = 10;
   let deadzone = 0.25;
@@ -93,13 +92,18 @@ function handleGamepad() {
   let xAxis = gp.axes[0];
   let yAxis = gp.axes[1];
 
-  let stickMag = sqrt(xAxis * xAxis + yAxis * yAxis);
-  if (stickMag > deadzone) manager.pushBall(xAxis * force, yAxis * force);
+  let stickMag = xAxis * xAxis + yAxis * yAxis;
+  if (stickMag > deadzone * deadzone) {
+    manager.userInput();
+    manager.pushBall(xAxis * force, yAxis * force);
+  }
 
-  let startPressed = gp.buttons[9].pressed;
-  if (startPressed && !lastStartButtonPressed) paused = !paused;
-  lastStartButtonPressed = startPressed;
+  let pausePressed = gp.buttons[9].pressed;
+  if (pausePressed && !pauseButtonCurrentlyPressed) {
+    manager.userInput();
+    paused = !paused;
+  }
+  pauseButtonCurrentlyPressed = pausePressed;
 
-  if (gp.buttons.slice(0, 4).some(btn => btn.pressed)) manager.userInput(); // Click any buttons (ABXY) to begin
   // if (gp.buttons[1].pressed) // Button B for explosions
 }

@@ -1,6 +1,5 @@
 class Manager {
-  static showingTitle = true;
-  static titleAnimFramesLeft = 60;
+  static state = "IDLE_TITLE"; // IDLE_TITLE, ANIM_TITLE, PLAYING
 
   biomes = [];
   cameraWorldY = 0;
@@ -25,10 +24,6 @@ class Manager {
   }
 
   update() {
-    if (!Manager.showingTitle && Manager.titleAnimFramesLeft > 0) {
-      Manager.titleAnimFramesLeft--;
-    }
-
     this.ball.update(this.currentBiome.gravity, this.currentBiome.maxVelocity);
     this.ball.checkWorldEdges();
 
@@ -46,7 +41,7 @@ class Manager {
 
     if (
       this.ball.velocity.magSq() < 0.1 &&
-      !Manager.showingTitle &&
+      Manager.state === "PLAYING" &&
       this.ball.worldCenterPos.y + this.ball.radius > this.totalWorldHeight - 1
     ) {
       this.idleFrames++;
@@ -83,9 +78,11 @@ class Manager {
     this.ball.velocity.y = y;
   }
 
-  userInput() {
-    Manager.showingTitle = false;
+  userInput(isStartButton = false) {
     this.idleFrames = 0;
+    if (Manager.state === "IDLE_TITLE" && isStartButton) {
+      Manager.state = "ANIM_TITLE";
+    }
   }
 
   restart() {
@@ -93,8 +90,7 @@ class Manager {
       biome.reset();
     }
 
-    Manager.showingTitle = true;
-    Manager.titleAnimFramesLeft = 60;
+    Manager.state = "IDLE_TITLE";
     this.cameraWorldY = 0;
     this.currentBiome = this.biomes[0];
     this.ball.velocity.set(0, 0);

@@ -1,5 +1,4 @@
 class StartBiome extends Biome {
-  static controllerConnected = false;
   titleFont = null;
 
   title = "BOUNCING DISCOVERIES";
@@ -21,38 +20,53 @@ class StartBiome extends Biome {
       ball
     );
     this.biomeHeight = height * 1.5;
-    this.originalFrames = Manager.titleAnimFramesLeft;
+    this.originalFadeOutFrames = 60;
+    this.fadeOutFrames = this.originalFadeOutFrames;
     this.titleY = worldStartY + height / 3 + 25;
     this.fillTopY = this.biomeHeight * (1 - this.ballPoolFillness);
     this.fillBottomY = this.biomeHeight;
+    this.biomeCollider = new RectCollider(width / 2, worldStartY + this.biomeHeight / 2, width / 2, this.biomeHeight / 2, 0.5);
 
-    // Claw Machine
+    // Claw machine
     this.clawX = width / 2;
     this.clawY = 80;
-    this.grabbedBall = false;
-    this.clawState = "IDLE"; // IDLE, DESCENDING, GRABBING, MOVING, DROPPING
+    this.clawState = "IDLE"; // IDLE, DESCENDING, MOVING, DROPPING
 
     // Dropper
     this.dropperX = width - this.dropperWidth;
     this.dropperY = height * 0.3;
     this.dropperHeight = this.biomeHeight - this.dropperY;
 
+    // Ball pool
+    this.ballPoolBuffer = createGraphics(width, this.biomeHeight);
+    this.ballPoolBuffer.colorMode(HSB);
     this.generateBallPool();
+    this.drawBallPoolBuffer();
   }
 
   update(topY) {
-    if (Manager.titleAnimFramesLeft < this.originalFrames && this.clawState === "IDLE") {
+    if (!this.biomeCollider.collidesWith(this.ball)) {
+      Manager.state = "PLAYING";
+      return;
+    }
+    if (Manager.state === "PLAYING") {
+      this.biomeCollider.handleCollision(this.ball);
+      return;
+    }
+
+    if (Manager.state === "ANIM_TITLE" && this.clawState === "IDLE") {
       this.clawState = "DESCENDING";
+    }
+
+    if (Manager.state === "ANIM_TITLE" && this.fadeOutFrames > 0) {
+      this.fadeOutFrames--;
     }
 
     let clawGrabY = this.fillTopY + (this.fillBottomY - this.fillTopY) * this.clawGrabDepth;
     let clawDropY = 100; // todo: make this variable if the height of the dropper is variable
     if (this.clawState === "DESCENDING") {
       this.clawY += 5;
-      if (this.clawY > clawGrabY) this.clawState = "GRABBING";
-    } else if (this.clawState === "GRABBING") {
-      this.grabbedBall = true;
-      this.clawState = "MOVING";
+      if (this.clawY > clawGrabY) this.clawState = "MOVING";
     } else if (this.clawState === "MOVING") {
       let arrived = true;
       if (this.clawY > clawDropY) {
@@ -82,7 +96,7 @@ class StartBiome extends Biome {
   }
 
   drawBodyFG(topY) {
-    let alphaTitle = map(Manager.titleAnimFramesLeft, 0, this.originalFrames, 0.3, 1);
+    let alphaTitle = map(this.fadeOutFrames, 0, this.originalFadeOutFrames, 0.3, 1);
     textAlign(CENTER, CENTER);
 
     push();
@@ -92,7 +106,7 @@ class StartBiome extends Biome {
     text(this.title, width / 2, this.titleY + topY);
     pop();
 
-    this.drawBallPool(topY);
+    image(this.ballPoolBuffer, 0, topY);
     this.drawStartPrompt();
     this.drawDropper(topY);
   }
@@ -133,18 +147,23 @@ class StartBiome extends Biome {
     }
   }
 
-  drawBallPool(topY) {
-    push();
-    fill(0);
-    rect(0, topY + this.fillTopY + this.ball.radius, width - this.dropperWidth, this.fillBottomY - this.fillTopY);
-    pop();
+  drawBallPoolBuffer() {
+    this.ballPoolBuffer.push();
+    this.ballPoolBuffer.fill(0);
+    this.ballPoolBuffer.rect(
+      0,
+      this.fillTopY + this.ball.radius,
+      width - this.dropperWidth,
+      this.fillBottomY - this.fillTopY
+    );
 
     for (let b of this.ballPool) {
-      fill(b.color);
-      stroke(0, 0, 0, 0.2);
-      strokeWeight(1);
-      circle(b.x, b.y + topY, b.size);
+      this.ballPoolBuffer.fill(b.color);
+      this.ballPoolBuffer.stroke(0, 0, 0, 0.2);
+      this.ballPoolBuffer.strokeWeight(1);
+      this.ballPoolBuffer.circle(b.x, b.y, b.size);
     }
+    this.ballPoolBuffer.pop();
   }
 
   drawClaw(topY) {
@@ -181,9 +200,9 @@ class StartBiome extends Biome {
   }
 
   drawStartPrompt() {
-    if (Manager.titleAnimFramesLeft > 0) {
+    if (this.fadeOutFrames > 0) {
       push();
-      let progress = Manager.titleAnimFramesLeft / this.originalFrames;
+      let progress = this.fadeOutFrames / this.originalFadeOutFrames;
       let alphaPrompt = pow(progress, 2);
       let promptY = this.titleY + 100;
       let pulse = map(sin(frameCount * 0.1), -1, 1, 0.3, 1);
@@ -230,7 +249,10 @@ class StartBiome extends Biome {
   }
 
   reset() {
-    this.paddle1.rotate(-PI / 4);
-    this.paddle2.rotate(PI / 4);
+    this.fadeOutFrames = this.originalFadeOutFrames;
+    this.clawState = "IDLE";
+    this.clawX = width / 2;
+    this.clawY = 80;
+    this.generateBallPool();
   }
 }
