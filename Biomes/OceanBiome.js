@@ -17,17 +17,20 @@ class OceanBiome extends Biome {
   bobaAmp = 10;
 
   // Flow field parameters
-  CELL_SIZE = 150;
-  NOISE_SCALE = 0.05;
+  CELL_SIZE = 100;
+  NOISE_SCALE = 0.08;
   NOISE_TIME_SPEED = 0.05;
   FLOW_MAGNITUDE = 1;
   NB_PARTICLES = 6000;
   timeOffset = 0;
 
+  NB_FISHIES = 20;
+  fishies = [];
+
   constructor(worldStartY) {
     super(
       worldStartY,
-      2000, // biomeHeight
+      4000, // biomeHeight
       50, // startOverlapHeight
       400, // startHeight
       400, // endHeight
@@ -69,6 +72,11 @@ class OceanBiome extends Biome {
     for (let i = 0; i < this.NB_PARTICLES; i++) {
       this.particles.push(new Particle(this.biomeHeight, this.CELL_SIZE, this.rows, this.cols));
     }
+
+    // Initialize fishes
+    for (let i = 0; i < this.NB_FISHIES; i++) {
+      this.fishies.push(new Fish(this.biomeHeight, this.CELL_SIZE, this.rows, this.cols));
+    }
   }
 
   update(topY) {
@@ -77,6 +85,7 @@ class OceanBiome extends Biome {
     }
     let ballBiomePosition = createVector(this.ball.worldCenterPos.x, this.ball.worldCenterPos.y - this.worldStartY);
     this.particles.forEach((p) => p.update(topY, this.flowField, ballBiomePosition, this.ball.radius));
+    this.fishies.forEach((f) => f.update(this.flowField));
   }
 
   drawBodyBG(topY) {
@@ -88,6 +97,10 @@ class OceanBiome extends Biome {
     this.particleBuffer.background(190, 100, 100, 0.1);
     this.particles.forEach((p) => p.draw(topY, this.particleBuffer));
     image(this.particleBuffer, 0, topY); // Draw the particle canvas onto the main canvas
+  }
+
+  drawBodyFG(topY) {
+    this.fishies.forEach((f) => f.draw(topY));
   }
 
   drawStartFG(topY) {
