@@ -4,9 +4,6 @@ class StartBiome extends Biome {
   title = "BOUNCING DISCOVERIES";
   fontSize = 48;
   ballPool = [];
-  ballPoolFillness = 0.5; // todo: make random
-  clawGrabDepth = 0.4; // todo: make random. How far down the claw goes to grab the ball (0 to 1)
-  dropperWidth = 180;
 
   constructor(worldStartY, ball) {
     super(
@@ -19,23 +16,21 @@ class StartBiome extends Biome {
       10, // maxVelocity
       ball
     );
+
     this.biomeHeight = height * 1.5;
     this.originalFadeOutFrames = 60;
     this.fadeOutFrames = this.originalFadeOutFrames;
     this.titleY = worldStartY + height / 3 + 25;
-    this.fillTopY = this.biomeHeight * (1 - this.ballPoolFillness);
-    this.fillBottomY = this.biomeHeight;
-    this.biomeCollider = new RectCollider(width / 2, worldStartY + this.biomeHeight / 2, width / 2, this.biomeHeight / 2, 0.5);
+    this.biomeCollider = new RectCollider(
+      width / 2,
+      worldStartY + this.biomeHeight / 2,
+      width / 2,
+      this.biomeHeight / 2,
+      0.5
+    );
 
-    // Claw machine
-    this.clawX = width / 2;
-    this.clawY = 80;
-    this.clawState = "IDLE"; // IDLE, DESCENDING, MOVING, DROPPING
-
-    // Dropper
-    this.dropperX = width - this.dropperWidth;
-    this.dropperY = height * 0.3;
-    this.dropperHeight = this.biomeHeight - this.dropperY;
+    this.generateColors();
+    this.generateClawAndDropper();
 
     // Ball pool
     this.ballPoolBuffer = createGraphics(width, this.biomeHeight);
@@ -62,19 +57,18 @@ class StartBiome extends Biome {
       this.fadeOutFrames--;
     }
 
-    let clawGrabY = this.fillTopY + (this.fillBottomY - this.fillTopY) * this.clawGrabDepth;
-    let clawDropY = 100; // todo: make this variable if the height of the dropper is variable
     if (this.clawState === "DESCENDING") {
       this.clawY += 5;
-      if (this.clawY > clawGrabY) this.clawState = "MOVING";
+      if (this.clawY > this.fillTopY + (this.fillBottomY - this.fillTopY) * this.clawGrabDepth)
+        this.clawState = "ASCENDING";
+    }
+    if (this.clawState === "ASCENDING") {
+      this.clawY -= this.clawSpeed;
+      if (this.clawY <= this.clawDropY) this.clawState = "MOVING";
     } else if (this.clawState === "MOVING") {
       let arrived = true;
-      if (this.clawY > clawDropY) {
-        this.clawY -= 5;
-        arrived = false;
-      }
       if (this.clawX < width - this.dropperWidth / 2) {
-        this.clawX += 5;
+        this.clawX += this.clawSpeed;
         arrived = false;
       }
       if (arrived) this.clawState = "DROPPING";
@@ -89,7 +83,7 @@ class StartBiome extends Biome {
   drawBodyBG(topY) {
     push();
     noStroke();
-    fill(200, 100, 100); // Todo: random background color and complementary claw color and ball color, matching ball to next biome
+    fill(this.primColor);
     rect(0, topY, width, this.biomeHeight);
     this.drawClaw(topY);
     pop();
@@ -114,14 +108,42 @@ class StartBiome extends Biome {
   drawBall(screenX, screenY, radius) {
     if (this.clawState === "IDLE" || this.clawState === "DESCENDING") return;
     push();
-    fill(240, 100, 100);
-    stroke(255);
-    strokeWeight(2);
+    fill(this.ball.color);
+    stroke(0, 0, 0, 0.2);
+    strokeWeight(1);
     circle(screenX, screenY, radius * 2);
     pop();
   }
 
+  generateColors() {
+    this.primColor = color(random(360), random(70, 90), random(70, 90)); // For bg and claw
+    this.secColor = color(hue(this.primColor), 100, 50); // For claw and dropper
+    this.ball.color = color(random(360), random(80, 100), random(80, 100));
+  }
+
+  generateClawAndDropper() {
+    // Claw
+    this.clawState = "IDLE"; // IDLE, DESCENDING, ASCENDING, MOVING, DROPPING
+    this.clawX = width / 2;
+    this.clawY = 80;
+    this.clawDropY = this.clawY;
+    this.clawSpeed = 12;
+    this.clawGrabDepth = random(0.2, 0.6);
+
+    // Dropper
+    this.dropperWidth = 180;
+    this.dropperX = width - this.dropperWidth;
+    this.dropperY = this.clawY + this.ball.radius * 2 + 80;
+    this.dropperHeight = this.biomeHeight - this.dropperY;
+  }
+
   generateBallPool() {
+    // Pool properties
+    this.fillTopYMin = this.titleY + 200;
+    this.fillTopYMax = (height * 3) / 4;
+    this.fillTopY = random(this.fillTopYMin, this.fillTopYMax);
+    this.fillBottomY = this.biomeHeight;
+
     let ballRadius = this.ball.radius;
     let ballDiameter = ballRadius * 2;
 
@@ -140,8 +162,8 @@ class StartBiome extends Biome {
           x: x,
           y: y,
           size: ballDiameter,
-          color: color(random(360), 70, 90),
-        }); // todo: change colors
+          color: color(random(360), random(80, 100), random(80, 100)),
+        });
       }
       rowIndex++;
     }
@@ -172,12 +194,12 @@ class StartBiome extends Biome {
     let middleWidth = this.ball.radius * 2 + 30;
 
     // Cable
-    stroke(50);
+    stroke(0, 0, 30);
     strokeWeight(8);
     line(worldClawX, topY, worldClawX, worldClawY);
 
     // Clips
-    fill(255);
+    fill(this.secColor);
     noStroke();
     rectMode(CENTER);
     rect(worldClawX, worldClawY, middleWidth, 18, 5);
@@ -189,12 +211,12 @@ class StartBiome extends Biome {
     let bottomDropperHeight = this.biomeHeight - this.fillTopY;
 
     // Top part of dropper
-    fill(200, 80, 80, 0.5); // todo: change color
+    fill(hue(this.secColor), saturation(this.secColor), brightness(this.secColor), 0.4);
     noStroke();
     rect(this.dropperX, topY + this.dropperY, this.dropperWidth, this.dropperHeight - bottomDropperHeight);
 
     // Bottom part of dropper
-    fill(0, 0, 50, 1); // todo: change color
+    fill(0, 0, 55);
     noStroke();
     rect(this.dropperX, this.fillTopY + topY, this.dropperWidth, bottomDropperHeight);
   }
@@ -250,9 +272,11 @@ class StartBiome extends Biome {
 
   reset() {
     this.fadeOutFrames = this.originalFadeOutFrames;
-    this.clawState = "IDLE";
-    this.clawX = width / 2;
-    this.clawY = 80;
+    this.generateColors();
+    this.generateClawAndDropper();
+    this.ballPoolBuffer = createGraphics(width, this.biomeHeight);
+    this.ballPoolBuffer.colorMode(HSB);
     this.generateBallPool();
+    this.drawBallPoolBuffer();
   }
 }

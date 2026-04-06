@@ -118,9 +118,9 @@ class AbstractBiome extends Biome {
 
   drawBall(screenX, screenY, radius) {
     push();
-    fill(140, 85, 100);
-    stroke(150, 90, 70);
-    strokeWeight(2);
+    fill(this.ball.color);
+    stroke(0, 0, 0, 0.2);
+    strokeWeight(1);
     circle(screenX, screenY, radius * 2);
     pop();
   }

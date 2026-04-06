@@ -4,6 +4,7 @@ class Ball {
     this.velocity = createVector(0, 0);
     this.radius = max(0.016 * width, 25);
     this.radius = min(this.radius, 45);
+    this.color = color(0, 0, 0);
   }
 
   setTotalWorldHeight(totalWorldHeight) {
