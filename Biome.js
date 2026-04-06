@@ -8,7 +8,7 @@ class Biome {
   gravity; // Biome-specific gravity affecting the player's speed
   maxVelocity; // Biome-specific max velocity for the player
 
-  constructor(worldStartY, biomeHeight, startOverlapHeight, startHeight, endHeight, gravity, maxVelocity) {
+  constructor(worldStartY, biomeHeight, startOverlapHeight, startHeight, endHeight, gravity, maxVelocity, ball) {
     if (this.constructor === Biome) {
       throw new Error("Abstract class 'Biome' cannot be instantiated.");
     }
@@ -20,6 +20,7 @@ class Biome {
     this.endHeight = endHeight;
     this.gravity = gravity;
     this.maxVelocity = maxVelocity;
+    this.ball = ball;
   }
 
   drawBackground(cameraWorldY) {
@@ -62,10 +63,6 @@ class Biome {
 
   isOnScreen(topY) {
     return topY - this.startOverlapHeight <= height && topY + this.biomeHeight >= 0;
-  }
-
-  setBall(ball) {
-    this.ball = ball;
   }
 
   update(topY) {}

@@ -10,25 +10,18 @@ class Manager {
   idleFrames = 0;
 
   constructor() {
+    this.ball = new Ball(width / 2, height / 3);
+
     const biomes = [StartBiome, AbstractBiome, MatrixBiome, OceanBiome, SpaceBiome];
     let currentWorldY = 0;
 
     for (let BiomeClass of biomes) {
-      this.biomes.push(new BiomeClass(currentWorldY));
+      this.biomes.push(new BiomeClass(currentWorldY, this.ball));
       currentWorldY += this.biomes[this.biomes.length - 1].biomeHeight;
     }
     this.totalWorldHeight = currentWorldY;
+    this.ball.setTotalWorldHeight(this.totalWorldHeight);
     this.currentBiome = this.biomes[0];
-
-    this.ball = new Ball(width / 2, height / 3, this.totalWorldHeight);
-
-    for (let biome of this.biomes) {
-      biome.setBall(this.ball);
-    }
-
-    if (this.biomes[0] instanceof StartBiome) {
-      this.biomes[0].generateBallPool();
-    }
   }
 
   update() {
@@ -104,9 +97,7 @@ class Manager {
     Manager.titleAnimFramesLeft = 60;
     this.cameraWorldY = 0;
     this.currentBiome = this.biomes[0];
-    this.ball = new Ball(width / 2, height / 3, this.totalWorldHeight);
-    for (let biome of this.biomes) {
-      biome.setBall(this.ball);
-    }
+    this.ball.velocity.set(0, 0);
+    this.ball.worldCenterPos.set(width / 2, height / 3);
   }
 }

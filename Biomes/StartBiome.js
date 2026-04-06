@@ -9,7 +9,7 @@ class StartBiome extends Biome {
   clawGrabDepth = 0.4; // todo: make random. How far down the claw goes to grab the ball (0 to 1)
   dropperWidth = 180;
 
-  constructor(worldStartY) {
+  constructor(worldStartY, ball) {
     super(
       worldStartY,
       200, // biomeHeight
@@ -17,7 +17,8 @@ class StartBiome extends Biome {
       0, // startHeight
       0, // endHeight
       0.5, // gravity
-      10 // maxVelocity
+      10, // maxVelocity
+      ball
     );
     this.biomeHeight = height * 1.5;
     this.originalFrames = Manager.titleAnimFramesLeft;
@@ -35,6 +36,8 @@ class StartBiome extends Biome {
     this.dropperX = width - this.dropperWidth;
     this.dropperY = height * 0.3;
     this.dropperHeight = this.biomeHeight - this.dropperY;
+
+    this.generateBallPool();
   }
 
   update(topY) {

@@ -27,15 +27,16 @@ class OceanBiome extends Biome {
   NB_FISHIES = 20;
   fishies = [];
 
-  constructor(worldStartY) {
+  constructor(worldStartY, ball) {
     super(
       worldStartY,
-      4000, // biomeHeight
+      3500, // biomeHeight
       50, // startOverlapHeight
       400, // startHeight
       400, // endHeight
       0.1, // gravity
-      2 // maxVelocity
+      2, // maxVelocity
+      ball
     );
     this.sandSeed = random(1000);
     this.waterSeed = random(1000);

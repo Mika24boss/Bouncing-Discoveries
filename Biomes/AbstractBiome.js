@@ -63,7 +63,7 @@ class AbstractBiome extends Biome {
   interactiveShapes = [];
   transitionRects = [];
 
-  constructor(worldStartY) {
+  constructor(worldStartY, ball) {
     super(
       worldStartY,
       5000, // biomeHeight
@@ -71,7 +71,8 @@ class AbstractBiome extends Biome {
       150, // startHeight
       100, // endHeight
       0.3, // gravity
-      20 // maxVelocity
+      20, // maxVelocity
+      ball
     );
 
     this.generateShapes();

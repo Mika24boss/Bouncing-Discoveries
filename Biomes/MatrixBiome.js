@@ -7,7 +7,7 @@ class MatrixBiome extends Biome {
   gapLine = 25;
   streamFontSize = 24;
 
-  constructor(worldStartY) {
+  constructor(worldStartY, ball) {
     super(
       worldStartY,
       3000, // biomeHeight
@@ -15,7 +15,8 @@ class MatrixBiome extends Biome {
       100, // startHeight
       100, // endHeight
       0.2, // gravity
-      2 // maxVelocity
+      2, // maxVelocity
+      ball
     );
 
     this.codeString = MatrixBiome.codeString;
@@ -35,16 +36,14 @@ class MatrixBiome extends Biome {
         symbols: this.generateSymbols(floor(random(8, 20))),
         switchInterval: floor(random(1, 3)),
       });
+
+      let ballEffectRadiusMult = map(width, 1920, 2560, 3, 2.25, true);
+      let ballEffectStrengthMult = map(width, 1920, 2560, 1.4, 1.25, true);
+      this.ballEffectRadius = ballEffectRadiusMult * this.ball.radius;
+      this.ballEffectStrength = ballEffectStrengthMult * this.ball.radius;
     }
   }
 
-  setBall(ball) {
-    this.ball = ball;
-    let ballEffectRadiusMult = map(width, 1920, 2560, 3, 2.25, true);
-    let ballEffectStrengthMult = map(width, 1920, 2560, 1.4, 1.25, true);
-    this.ballEffectRadius = ballEffectRadiusMult * ball.radius;
-    this.ballEffectStrength = ballEffectStrengthMult * ball.radius;
-  }
 
   drawBodyBG(topY) {
     push();
@@ -84,10 +83,7 @@ class MatrixBiome extends Biome {
       let lineText = this.wrappedLines[textBlockIndex];
 
       // Print the text normally if the ball isn't near this line
-      if (
-        midLineY < ballScreenY - this.ballEffectRadius ||
-        midLineY > ballScreenY + this.ballEffectRadius
-      ) {
+      if (midLineY < ballScreenY - this.ballEffectRadius || midLineY > ballScreenY + this.ballEffectRadius) {
         text(lineText, 0, bottomLineY);
         continue;
       }
