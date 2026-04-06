@@ -25,6 +25,10 @@ class Manager {
     for (let biome of this.biomes) {
       biome.setBall(this.ball);
     }
+
+    if (this.biomes[0] instanceof StartBiome) {
+      this.biomes[0].generateBallPool();
+    }
   }
 
   update() {

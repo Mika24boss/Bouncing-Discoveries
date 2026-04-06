@@ -4,74 +4,185 @@ class StartBiome extends Biome {
 
   title = "BOUNCING DISCOVERIES";
   fontSize = 48;
-  paddleWidth = 100;
-  paddleHeight = 20;
+  ballPool = [];
+  ballPoolFillness = 0.5; // todo: make random
+  clawGrabDepth = 0.4; // todo: make random. How far down the claw goes to grab the ball (0 to 1)
+  dropperWidth = 180;
 
   constructor(worldStartY) {
     super(
       worldStartY,
-      2000, // biomeHeight
+      200, // biomeHeight
       0, // startOverlapHeight
-      200, // startHeight
-      200, // endHeight
+      0, // startHeight
+      0, // endHeight
       0.5, // gravity
       10 // maxVelocity
     );
     this.biomeHeight = height * 1.5;
     this.originalFrames = Manager.titleAnimFramesLeft;
-    this.titleY = worldStartY + height / 2 + 25;
-    this.paddle1 = new Paddle(width / 2 - 50, height / 3 + 40, PI / 4, worldStartY);
-    this.paddle2 = new Paddle(width / 2 + 50, height / 3 + 40, -PI / 4, worldStartY);
+    this.titleY = worldStartY + height / 3 + 25;
+    this.fillTopY = this.biomeHeight * (1 - this.ballPoolFillness);
+    this.fillBottomY = this.biomeHeight;
 
-    push();
-    textFont(StartBiome.titleFont);
-    textSize(this.fontSize);
-    if (textWidth(this.title) > width * 0.9) {
-      this.title = this.title.split(" ").join("\n");
-    }
-    pop();
+    // Claw Machine
+    this.clawX = width / 2;
+    this.clawY = 80;
+    this.grabbedBall = false;
+    this.clawState = "IDLE"; // IDLE, DESCENDING, GRABBING, MOVING, DROPPING
+
+    // Dropper
+    this.dropperX = width - this.dropperWidth;
+    this.dropperY = height * 0.3;
+    this.dropperHeight = this.biomeHeight - this.dropperY;
   }
 
   update(topY) {
-    if (Manager.titleAnimFramesLeft > 0 && Manager.titleAnimFramesLeft <= this.originalFrames / 2) {
-      let deltaAngle = PI / 4 / (this.originalFrames / 2);
-      this.paddle1.rotate(deltaAngle);
-      this.paddle2.rotate(-deltaAngle);
+    if (Manager.titleAnimFramesLeft < this.originalFrames && this.clawState === "IDLE") {
+      this.clawState = "DESCENDING";
     }
 
-    if (this.paddle1.collider.collidesWith(this.ball)) this.paddle1.handleCollision(this.ball);
-    if (this.paddle2.collider.collidesWith(this.ball)) this.paddle2.handleCollision(this.ball);
+    let clawGrabY = this.fillTopY + (this.fillBottomY - this.fillTopY) * this.clawGrabDepth;
+    let clawDropY = 100; // todo: make this variable if the height of the dropper is variable
+    if (this.clawState === "DESCENDING") {
+      this.clawY += 5;
+      if (this.clawY > clawGrabY) this.clawState = "GRABBING";
+    } else if (this.clawState === "GRABBING") {
+      this.grabbedBall = true;
+      this.clawState = "MOVING";
+    } else if (this.clawState === "MOVING") {
+      let arrived = true;
+      if (this.clawY > clawDropY) {
+        this.clawY -= 5;
+        arrived = false;
+      }
+      if (this.clawX < width - this.dropperWidth / 2) {
+        this.clawX += 5;
+        arrived = false;
+      }
+      if (arrived) this.clawState = "DROPPING";
+    }
+
+    if (this.clawState !== "DROPPING") {
+      this.ball.worldCenterPos.y = this.clawY + this.ball.radius + 10;
+      this.ball.worldCenterPos.x = this.clawX;
+    }
   }
 
   drawBodyBG(topY) {
     push();
     noStroke();
-    fill(200, 100, 100);
+    fill(200, 100, 100); // Todo: random background color and complementary claw color and ball color, matching ball to next biome
     rect(0, topY, width, this.biomeHeight);
+    this.drawClaw(topY);
     pop();
-
-    this.paddle1.draw(topY);
-    this.paddle2.draw(topY);
   }
 
   drawBodyFG(topY) {
-    let blurStrength = map(Manager.titleAnimFramesLeft, 0, this.originalFrames, 0, 6);
     let alphaTitle = map(Manager.titleAnimFramesLeft, 0, this.originalFrames, 0.3, 1);
     textAlign(CENTER, CENTER);
 
     push();
-    if (Manager.titleAnimFramesLeft > 0) filter(BLUR, blurStrength);
     textFont(StartBiome.titleFont);
     textSize(this.fontSize);
     fill(0, alphaTitle);
     text(this.title, width / 2, this.titleY + topY);
     pop();
 
-    if (Manager.titleAnimFramesLeft > 0) {      
+    this.drawBallPool(topY);
+    this.drawStartPrompt();
+    this.drawDropper(topY);
+  }
+
+  drawBall(screenX, screenY, radius) {
+    if (this.clawState === "IDLE" || this.clawState === "DESCENDING") return;
+    push();
+    fill(240, 100, 100);
+    stroke(255);
+    strokeWeight(2);
+    circle(screenX, screenY, radius * 2);
+    pop();
+  }
+
+  generateBallPool() {
+    let ballRadius = this.ball.radius;
+    let ballDiameter = ballRadius * 2;
+
+    // Hexagonal packing algorithm
+    let hSpacing = ballDiameter;
+    let vSpacing = ballDiameter * sin(radians(60));
+
+    this.ballPool = [];
+
+    let rowIndex = 0;
+    for (let y = this.fillTopY + ballRadius; y <= this.fillBottomY - ballRadius; y += vSpacing) {
+      let xOffset = rowIndex % 2 === 0 ? 0 : ballRadius; // Offset every other row for hex packing
+
+      for (let x = -50 + ballRadius + xOffset; x <= this.dropperX + 50 - ballRadius; x += hSpacing) {
+        this.ballPool.push({
+          x: x,
+          y: y,
+          size: ballDiameter,
+          color: color(random(360), 70, 90),
+        }); // todo: change colors
+      }
+      rowIndex++;
+    }
+  }
+
+  drawBallPool(topY) {
+    push();
+    fill(0);
+    rect(0, topY + this.fillTopY + this.ball.radius, width - this.dropperWidth, this.fillBottomY - this.fillTopY);
+    pop();
+
+    for (let b of this.ballPool) {
+      fill(b.color);
+      stroke(0, 0, 0, 0.2);
+      strokeWeight(1);
+      circle(b.x, b.y + topY, b.size);
+    }
+  }
+
+  drawClaw(topY) {
+    let worldClawX = this.clawX;
+    let worldClawY = this.clawY + topY;
+    let middleWidth = this.ball.radius * 2 + 30;
+
+    // Cable
+    stroke(50);
+    strokeWeight(8);
+    line(worldClawX, topY, worldClawX, worldClawY);
+
+    // Clips
+    fill(255);
+    noStroke();
+    rectMode(CENTER);
+    rect(worldClawX, worldClawY, middleWidth, 18, 5);
+    rect(worldClawX - middleWidth / 2, worldClawY + this.ball.radius, 10, middleWidth, 5);
+    rect(worldClawX + middleWidth / 2, worldClawY + this.ball.radius, 10, middleWidth, 5);
+  }
+
+  drawDropper(topY) {
+    let bottomDropperHeight = this.biomeHeight - this.fillTopY;
+
+    // Top part of dropper
+    fill(200, 80, 80, 0.5); // todo: change color
+    noStroke();
+    rect(this.dropperX, topY + this.dropperY, this.dropperWidth, this.dropperHeight - bottomDropperHeight);
+
+    // Bottom part of dropper
+    fill(0, 0, 50, 1); // todo: change color
+    noStroke();
+    rect(this.dropperX, this.fillTopY + topY, this.dropperWidth, bottomDropperHeight);
+  }
+
+  drawStartPrompt() {
+    if (Manager.titleAnimFramesLeft > 0) {
       push();
       let progress = Manager.titleAnimFramesLeft / this.originalFrames;
       let alphaPrompt = pow(progress, 2);
-      let promptY = height - 200;
+      let promptY = this.titleY + 100;
       let pulse = map(sin(frameCount * 0.1), -1, 1, 0.3, 1);
       let finalAlpha = alphaPrompt * pulse;
 
@@ -113,15 +224,6 @@ class StartBiome extends Biome {
 
       pop();
     }
-  }
-
-  drawBall(screenX, screenY, radius) {
-    push();
-    fill(240, 100, 100);
-    stroke(255);
-    strokeWeight(2);
-    circle(screenX, screenY, radius * 2);
-    pop();
   }
 
   reset() {
