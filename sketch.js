@@ -82,7 +82,7 @@ function handleGamepad() {
 
   if (!gp) return;
 
-  if (gp.buttons.slice(0, 4).some((btn) => btn.pressed)) manager.userInput(true); // Click any buttons (ABXY) to begin
+  if (gp.buttons.slice(0, 4).some((btn) => btn.pressed)) manager.userInput(true); // Click any buttons to begin
 
   if (Manager.state !== "PLAYING") return;
 
