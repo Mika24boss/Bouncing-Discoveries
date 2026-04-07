@@ -60,4 +60,13 @@ class Collider {
     ball.velocity.add(correction);
     ball.velocity.mult(this.minimumSlowdown); // Apply minimum slowdown to prevent infinite bouncing
   }
+
+  /**
+   * Sets a new position for the collider.
+   * @param {number} worldCenterX X world coordinate of the collider's center
+   * @param {number} worldCenterY Y world coordinate of the collider's center
+   */
+  setPosition(worldCenterX, worldCenterY) {
+    this.worldCenterPos.set(worldCenterX, worldCenterY);
+  }
 }

@@ -77,7 +77,7 @@ class OceanBiome extends Biome {
 
     this.particles = [];
     for (let i = 0; i < this.NB_PARTICLES; i++) {
-      this.particles.push(new Particle(this.biomeHeight, this.CELL_SIZE, this.rows, this.cols));
+      this.particles.push(new Particle(this.biomeHeight, this.CELL_SIZE, this.rows, this.cols, this.worldStartY, this.ball.radius));
     }
 
     this.fishies = [];
@@ -91,7 +91,7 @@ class OceanBiome extends Biome {
       this.computeFlowField(); // Recompute flow field for dynamic movement
     }
     let ballBiomePosition = createVector(this.ball.worldCenterPos.x, this.ball.worldCenterPos.y - this.worldStartY);
-    this.particles.forEach((p) => p.update(topY, this.flowField, ballBiomePosition, this.ball.radius));
+    this.particles.forEach((p) => p.update(this.flowField, this.ball));
     this.fishies.forEach((f) => f.update(this.flowField));
   }
 

@@ -5,6 +5,7 @@ class Ball {
     this.radius = max(0.016 * width, 25);
     this.radius = min(this.radius, 45);
     this.color = color(0, 0, 0);
+    this.collider = new CircleCollider(worldCenterX, worldCenterY, this.radius, 0);
   }
 
   setTotalWorldHeight(totalWorldHeight) {
@@ -15,6 +16,7 @@ class Ball {
     this.velocity.y += gravity;
     this.velocity.limit(maxVelocity);
     this.worldCenterPos.add(this.velocity);
+    this.collider.setPosition(this.worldCenterPos.x, this.worldCenterPos.y);
   }
 
   applyForce(x, y) {

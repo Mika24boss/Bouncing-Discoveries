@@ -4,20 +4,23 @@ class CircleCollider extends Collider {
     this.radius = radius;
   }
 
-  collidesWith(ball) {
-    return (
-      dist(ball.worldCenterPos.x, ball.worldCenterPos.y, this.worldCenterPos.x, this.worldCenterPos.y) <
-      this.radius + ball.radius
-    );
+  collidesWith(other) {
+    let dx = other.worldCenterPos.x - this.worldCenterPos.x;
+    let dy = other.worldCenterPos.y - this.worldCenterPos.y;
+    let radiusSum = this.radius + other.radius;
+    return dx * dx + dy * dy < radiusSum * radiusSum;
   }
 
-  getNormal(ball) {
-    // Normal points from collider center to ball center
-    return p5.Vector.sub(ball.worldCenterPos, this.worldCenterPos).normalize();
+  getNormal(other) {
+    // Normal points from collider center to other's center
+    return p5.Vector.sub(other.worldCenterPos, this.worldCenterPos).normalize();
   }
 
-  correctPosition(ball, normal) {
-    const overlap = (this.radius + ball.radius) - dist(ball.worldCenterPos.x, ball.worldCenterPos.y, this.worldCenterPos.x, this.worldCenterPos.y);
-    ball.worldCenterPos.add(p5.Vector.mult(normal, overlap));
+  correctPosition(other, normal) {
+    const overlap =
+      this.radius +
+      other.radius -
+      dist(other.worldCenterPos.x, other.worldCenterPos.y, this.worldCenterPos.x, this.worldCenterPos.y);
+    other.worldCenterPos.add(p5.Vector.mult(normal, overlap));
   }
 }
