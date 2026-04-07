@@ -156,6 +156,8 @@ class AbstractBiome extends Biome {
         this.interactiveShapes.push(newShape);
       }
     }
+    let angledStart = new InteractiveRectangle(this.biomeHeight, this.worldStartY, this.interactiveStyles[0], true);
+    this.interactiveShapes.push(angledStart);
   }
 
   generateTransitionRects() {
