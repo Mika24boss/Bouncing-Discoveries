@@ -6,6 +6,7 @@ class Manager {
   lerpSpeed = 0.1; // Adjust smoothing factor for camera movement
   currentBiome = null;
   idleRestartTime = 600; // Frames until auto-restart when idle
+  idleStartTime = 900; // Frames until auto-start from the title screen
   idleFrames = 0;
 
   constructor() {
@@ -90,10 +91,13 @@ class Manager {
       this.ball.worldCenterPos.y + this.ball.radius > this.totalWorldHeight - 1
     ) {
       this.idleFrames++;
+    } else if (Manager.state === "IDLE_TITLE") {
+      this.idleFrames++;
     } else {
       this.idleFrames = 0;
     }
-    if (this.idleFrames > this.idleRestartTime) this.restart();
+    if (Manager.state === "PLAYING" && this.idleFrames > this.idleRestartTime) this.restart();
+    else if (Manager.state === "IDLE_TITLE" && this.idleFrames > this.idleStartTime) Manager.state = "ANIM_TITLE";
   }
 
   drawScene() {
@@ -154,6 +158,7 @@ class Manager {
     }
 
     Manager.state = "IDLE_TITLE";
+    this.idleFrames = 0;
     this.cameraWorldY = 0;
     this.currentBiome = this.biomes[0];
     this.ball.velocity.set(0, 0);
