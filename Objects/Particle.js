@@ -93,7 +93,7 @@ class Particle {
 
   reset() {
     this.position.x = random(width);
-    this.position.y = this.biomeHeight;
+    this.position.y = this.biomeHeight + random(100);
     this.velocity = createVector(0, 0);
     this.previousPosition = this.position.copy();
   }

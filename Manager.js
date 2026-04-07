@@ -11,7 +11,7 @@ class Manager {
   constructor() {
     this.ball = new Ball(width / 2, height / 3);
 
-    const biomes = [StartBiome, AbstractBiome, MatrixBiome];
+    const biomes = [StartBiome, AbstractBiome, MatrixBiome, OceanBiome, SpaceBiome];
     const biomeMusic = [startMusic, abstractMusic, matrixMusic, oceanMusic, spaceMusic];
     let currentWorldY = 0;
 
@@ -32,18 +32,38 @@ class Manager {
   updateMusic() {
     let targetMusic = this.currentBiome.music;
     if (!targetMusic) return;
-    if (targetMusic === this.currentMusic) return;
 
-    // Fade out current music
-    if (this.currentMusic) {
-      this.currentMusic.setVolume(0, 0.5);
-      this.currentMusic.stop(0.5);
+    // Currently playing the right music, check for fade in or fade out
+    if (targetMusic === this.currentMusic) {
+      let fadeDistance = this.currentBiome.maxVelocity * 200;
+      fadeDistance = constrain(fadeDistance, 50, height);
+      let fadeInLimit = this.currentBiome.worldStartY + fadeDistance;
+      let fadeOutLimit = this.currentBiome.worldStartY + this.currentBiome.biomeHeight - fadeDistance;
+
+      let fadeIn = this.ball.worldCenterPos.y < fadeInLimit; // Fade in when close to the top of the biome
+      let fadeOut = this.ball.worldCenterPos.y > fadeOutLimit; // Fade out when close to the bottom of the biome
+
+      if (this.currentBiome instanceof StartBiome) {
+        fadeIn = false; // Don't fade in the start biome
+        fadeOut &&= this.currentBiome.clawState === "DROPPING"; // Only fade out when the ball is falling
+      }
+
+      if (fadeIn) {
+        let volume = (this.ball.worldCenterPos.y - this.currentBiome.worldStartY) / fadeDistance;
+        this.currentMusic.setVolume(volume);
+      } else if (fadeOut) {
+        let volume = 1 - (this.ball.worldCenterPos.y - fadeOutLimit) / fadeDistance;
+        this.currentMusic.setVolume(volume);
+      }
+      return;
     }
 
-    // Play next music
+    // Switch to a different music
+    if (this.currentMusic) {
+      this.currentMusic.stop();
+    }
     this.currentMusic = targetMusic;
     this.currentMusic.loop();
-    this.currentMusic.setVolume(1.0, 0.5);
   }
 
   update() {

@@ -43,7 +43,7 @@ function draw() {
 }
 
 function keyPressed() {
-  manager.userInput(true);
+  manager?.userInput(true);
   if (Manager.state !== "PLAYING") return;
 
   let force = 10;
@@ -72,7 +72,7 @@ function keyPressed() {
 }
 
 function mouseClicked() {
-  manager.userInput(true);
+  manager?.userInput(true);
 }
 
 function handleGamepad() {
