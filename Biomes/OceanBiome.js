@@ -107,7 +107,7 @@ class OceanBiome extends Biome {
     let circleColliders = this.balous.map((b) => b.collider);
     circleColliders.push(this.ball.collider);
     this.particles.forEach((p) => p.update(this.flowField, circleColliders));
-    this.fishies.forEach((f) => f.update(this.flowField));
+    this.fishies.forEach((f) => f.update(this.flowField, this.balous));
   }
 
   drawBodyBG(topY) {

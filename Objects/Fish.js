@@ -59,9 +59,9 @@ class Fish {
     this.segments[3].setFinWidth(this.analFinSize);
   }
 
-  update(flowField) {
+  update(flowField, boulders) {
     const nbSegments = this.segments.length;
-    this.guide.update(flowField);
+    this.guide.update(flowField, boulders);
 
     const head = this.segments[nbSegments - 1];
     head.follow(this.guide.getPosition());
@@ -357,7 +357,7 @@ class FishGuide {
     return this.noiseMagnitude * noise(this.noiseTime);
   }
 
-  update(flowField) {
+  update(flowField, boulders) {
     // Direction change delay
     if (this.delayTime > 0) {
       this.delayTime -= 1;
@@ -394,5 +394,33 @@ class FishGuide {
     this.velocity.rotate(this.direction.heading());
     this.velocity.setMag(this.speed);
     this.position.add(this.velocity);
+
+    this.avoidBoulders(boulders);
+  }
+
+  avoidBoulders(boulders) {
+    let lookAheadDist = 100;
+    let lookAheadPos = p5.Vector.mult(this.direction, lookAheadDist).add(this.position);
+
+    for (let b of boulders) {
+      if (b.position.y > this.position.y) continue;
+      // Calculate distance from boulder center to look-ahead point
+      let dx = lookAheadPos.x - b.position.x;
+      let dy = lookAheadPos.y - b.position.y;
+      let distSquared = dx * dx + dy * dy;
+
+      let avoidRadius = b.radius + 160;
+
+      if (distSquared >= avoidRadius * avoidRadius) continue;
+      
+      // Vector pointing from boulder to look-ahead point (i.e. pointing away from boulder)
+      let avoidVec = p5.Vector.sub(lookAheadPos, b.position);
+      avoidVec.y = 0;
+      let strength = map(distSquared, b.radius, avoidRadius, 1.0, 0.1, true) * 0.2;
+      avoidVec.setMag(strength);
+
+      // Nudge direction away from boulder
+      this.direction.add(avoidVec);
+    }
   }
 }

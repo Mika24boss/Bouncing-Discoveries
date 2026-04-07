@@ -65,6 +65,8 @@ class Particle {
     this.worldCenterPos.set(this.position.x, this.position.y + this.worldStartY);
 
     for (let collider of circleColliders) {
+      if (collider.worldCenterPos.y - 200 > this.worldCenterPos.y) continue; // Skip colliders far below the particle
+
       // Calculate distance between particle and collider
       let dx = this.worldCenterPos.x - collider.worldCenterPos.x;
       let dy = this.worldCenterPos.y - collider.worldCenterPos.y;
