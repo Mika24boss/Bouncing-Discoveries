@@ -2,12 +2,22 @@ const ASPECT_RATIO = 0.7; // Smaller aspect ratio for a skinnier canvas
 let paused = false;
 let manager;
 let pauseButtonCurrentlyPressed = false; // To pause
+let startMusic;
+let abstractMusic;
+let matrixMusic;
+let oceanMusic;
+let spaceMusic;
 
 let rawTextCode;
 
 function preload() {
   rawTextCode = loadStrings("Biomes/MatrixBiome.js");
   StartBiome.titleFont = loadFont("Assets/Bungee-Regular.ttf");
+  startMusic = loadSound("Assets/start.mp3");
+  abstractMusic = loadSound("Assets/abstract.mp3");
+  matrixMusic = loadSound("Assets/matrix.mp3");
+  // oceanMusic = loadSound("Assets/ocean.mp3");
+  // spaceMusic = loadSound("Assets/space.mp3");
 }
 
 function setup() {
@@ -22,7 +32,6 @@ function setup() {
     .join(" ")
     .replace(/\s+/g, " ") // Replace whitespaces of all length by a single space
     .replace(/\p{Emoji_Presentation}/gu, ""); // Remove emojis
-
   manager = new Manager();
 }
 
@@ -41,6 +50,7 @@ function keyPressed() {
   switch (keyCode) {
     case 32: // Space key
       paused = !paused;
+      manager.userInput(true, true);
       break;
     case UP_ARROW:
     case 87: // W key
@@ -89,10 +99,8 @@ function handleGamepad() {
 
   let pausePressed = gp.buttons[9].pressed;
   if (pausePressed && !pauseButtonCurrentlyPressed) {
-    manager.userInput();
     paused = !paused;
+    manager.userInput(false, true);
   }
   pauseButtonCurrentlyPressed = pausePressed;
-
-  // if (gp.buttons[1].pressed) // Button B for explosions
 }

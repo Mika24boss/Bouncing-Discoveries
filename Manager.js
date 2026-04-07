@@ -11,16 +11,39 @@ class Manager {
   constructor() {
     this.ball = new Ball(width / 2, height / 3);
 
-    const biomes = [StartBiome, AbstractBiome, MatrixBiome, OceanBiome, SpaceBiome];
+    const biomes = [StartBiome, AbstractBiome, MatrixBiome];
+    const biomeMusic = [startMusic, abstractMusic, matrixMusic, oceanMusic, spaceMusic];
     let currentWorldY = 0;
 
-    for (let BiomeClass of biomes) {
-      this.biomes.push(new BiomeClass(currentWorldY, this.ball));
-      currentWorldY += this.biomes[this.biomes.length - 1].biomeHeight;
+    for (let i = 0; i < biomes.length; i++) {
+      let BiomeClass = biomes[i];
+      let instance = new BiomeClass(currentWorldY, this.ball);
+      instance.music = biomeMusic[i];
+
+      this.biomes.push(instance);
+      currentWorldY += instance.biomeHeight;
     }
     this.totalWorldHeight = currentWorldY;
     this.ball.setTotalWorldHeight(this.totalWorldHeight);
     this.currentBiome = this.biomes[0];
+    this.currentMusic = null;
+  }
+
+  updateMusic() {
+    let targetMusic = this.currentBiome.music;
+    if (!targetMusic) return;
+    if (targetMusic === this.currentMusic) return;
+
+    // Fade out current music
+    if (this.currentMusic) {
+      this.currentMusic.setVolume(0, 0.5);
+      this.currentMusic.stop(0.5);
+    }
+
+    // Play next music
+    this.currentMusic = targetMusic;
+    this.currentMusic.loop();
+    this.currentMusic.setVolume(1.0, 0.5);
   }
 
   update() {
@@ -38,6 +61,8 @@ class Manager {
         this.currentBiome = biome;
       }
     }
+
+    this.updateMusic();
 
     if (
       this.ball.velocity.magSq() < 0.1 &&
@@ -78,14 +103,32 @@ class Manager {
     this.ball.velocity.y = y;
   }
 
-  userInput(isStartButton = false) {
+  userInput(isStartButton = false, isPause = false) {
     this.idleFrames = 0;
+
+    if (isPause && Manager.state === "PLAYING") {
+      if (paused) {
+        this.currentMusic.pause();
+      } else {
+        this.currentMusic.loop();
+      }
+    }
+
+    if (Manager.state === "IDLE_TITLE") {
+      userStartAudio();
+    }
+
     if (Manager.state === "IDLE_TITLE" && isStartButton) {
       Manager.state = "ANIM_TITLE";
     }
   }
 
   restart() {
+    if (this.currentMusic && this.currentMusic.isPlaying()) {
+      this.currentMusic.stop();
+      this.currentMusic = null;
+    }
+
     for (let biome of this.biomes) {
       biome.reset();
     }
