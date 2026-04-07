@@ -25,7 +25,7 @@ class OceanBiome extends Biome {
   timeOffset = 0;
 
   NB_FISHIES = 20;
-  NB_BALOUS = 12;
+  NB_BALOUS = 10;
 
   constructor(worldStartY, ball) {
     super(

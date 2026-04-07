@@ -9,7 +9,7 @@ class Boulder {
     let x, y;
     do {
       x = random(this.radius * 2, width - this.radius * 2);
-      y = random(startHeight + this.radius, biomeHeight - startHeight - endHeight / 2 - this.radius);
+      y = random(startHeight + this.radius, biomeHeight - endHeight - this.radius);
       closestDistSquared = Infinity;
       let closestRadius = 0;
       // Get closest distance to any of the existing boulders

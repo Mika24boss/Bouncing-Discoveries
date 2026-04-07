@@ -65,6 +65,7 @@ class Manager {
     }
     this.currentMusic = targetMusic;
     this.currentMusic.loop();
+    if (this.currentBiome instanceof StartBiome) this.currentMusic.setVolume(1);
   }
 
   update() {
