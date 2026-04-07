@@ -14,6 +14,7 @@ class Manager {
 
     const biomes = [StartBiome, AbstractBiome, MatrixBiome, OceanBiome, SpaceBiome];
     const biomeMusic = [startMusic, abstractMusic, matrixMusic, oceanMusic, spaceMusic];
+    this.loadMusic(biomeMusic);
     let currentWorldY = 0;
 
     for (let i = 0; i < biomes.length; i++) {
@@ -145,6 +146,16 @@ class Manager {
 
     if (Manager.state === "IDLE_TITLE" && isStartButton) {
       Manager.state = "ANIM_TITLE";
+    }
+  }
+
+  loadMusic(biomeMusic) {
+    // Preload and immediately stop each music to prevent lag spikes later
+    for (let music of biomeMusic) {
+      if (!music) continue;
+      music.setVolume(0);
+      music.play();
+      music.stop();
     }
   }
 
