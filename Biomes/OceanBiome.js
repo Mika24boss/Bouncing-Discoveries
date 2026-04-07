@@ -25,6 +25,7 @@ class OceanBiome extends Biome {
   timeOffset = 0;
 
   NB_FISHIES = 20;
+  NB_BALOUS = 12;
 
   constructor(worldStartY, ball) {
     super(
@@ -84,14 +85,28 @@ class OceanBiome extends Biome {
     for (let i = 0; i < this.NB_FISHIES; i++) {
       this.fishies.push(new Fish(this.biomeHeight, this.CELL_SIZE, this.rows, this.cols));
     }
+
+    this.balous = [];
+    for (let i = 0; i < this.NB_BALOUS; i++) {
+      this.balous.push(new Boulder(this.biomeHeight, this.startHeight, this.endHeight, this.worldStartY, this.balous));
+    }
   }
 
   update(topY) {
     if (frameCount % 5 === 0) {
       this.computeFlowField(); // Recompute flow field for dynamic movement
     }
-    let ballBiomePosition = createVector(this.ball.worldCenterPos.x, this.ball.worldCenterPos.y - this.worldStartY);
-    this.particles.forEach((p) => p.update(this.flowField, this.ball));
+
+    for (let balou of this.balous) {
+      if (!balou.isOnScreen(topY)) continue;
+      if (!balou.collider.collidesWith(this.ball)) continue;
+
+      balou.collider.handleCollision(this.ball);
+    }
+
+    let circleColliders = this.balous.map((b) => b.collider);
+    circleColliders.push(this.ball.collider);
+    this.particles.forEach((p) => p.update(this.flowField, circleColliders));
     this.fishies.forEach((f) => f.update(this.flowField));
   }
 
@@ -108,6 +123,7 @@ class OceanBiome extends Biome {
 
   drawBodyFG(topY) {
     this.fishies.forEach((f) => f.draw(topY));
+    this.balous.forEach((b) => b.draw(topY));
   }
 
   drawStartFG(topY) {

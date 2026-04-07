@@ -29,7 +29,7 @@ class Particle {
     this.position = createVector(random(width), random(biomeHeight + 100));
     this.worldCenterPos = createVector(this.position.x, this.position.y + this.worldStartY);
     this.previousPosition = this.position.copy();
-    this.glowMaxDist = 2 * ballRadius + this.radius;
+    this.glowMaxGap = ballRadius; // Surprinsingly good value for the glow radius
     this.maxEnergy = this.ENERGY_PER_COLOR_LEVEL * (this.COLORS.length + 2);
   }
 
@@ -48,10 +48,11 @@ class Particle {
     buffer.line(this.previousPosition.x, this.previousPosition.y, this.position.x, this.position.y);
   }
 
-  update(flowField, ball) {
+  update(flowField, circleColliders) {
     this.energy = max(this.energy - 1, 0);
     this.previousPosition = this.position.copy();
 
+    // Apply flow field force
     let cellRow = floor(this.position.y / this.cellSize);
     let cellCol = floor(this.position.x / this.cellSize);
     cellRow = constrain(cellRow, 0, this.rows - 1);
@@ -63,21 +64,26 @@ class Particle {
     this.position.add(this.velocity);
     this.worldCenterPos.set(this.position.x, this.position.y + this.worldStartY);
 
-    // Calculate distance between particle and ball
-    let dx = this.worldCenterPos.x - ball.collider.worldCenterPos.x;
-    let dy = this.worldCenterPos.y - ball.collider.worldCenterPos.y;
-    let distToBallSq = dx * dx + dy * dy;
+    for (let collider of circleColliders) {
+      // Calculate distance between particle and collider
+      let dx = this.worldCenterPos.x - collider.worldCenterPos.x;
+      let dy = this.worldCenterPos.y - collider.worldCenterPos.y;
+      let distToColliderSq = dx * dx + dy * dy;
+      let glowMaxDist = collider.radius + this.glowMaxGap + this.radius;
 
-    if (distToBallSq < this.glowMaxDist * this.glowMaxDist) {
-      let distToBall = Math.sqrt(distToBallSq);
-      let proximityRatio = map(distToBall, ball.radius, this.glowMaxDist, 1, 0, true);
+      if (distToColliderSq >= glowMaxDist * glowMaxDist) continue;
+
+      // Increase energy based on proximity
+      let distToCollider = Math.sqrt(distToColliderSq);
+      let proximityRatio = map(distToCollider, collider.radius, glowMaxDist, 1, 0, true);
       let newEnergy = proximityRatio ** 2 * this.maxEnergy;
       this.energy = max(this.energy, newEnergy);
 
-      if (ball.collider.collidesWith(this)) {
-        ball.collider.handleCollision(this);
-        this.position.set(this.worldCenterPos.x, this.worldCenterPos.y - this.worldStartY);
-      }
+      if (distToCollider > collider.radius + this.radius) continue;
+
+      // Apply collision response to particle
+      collider.handleCollision(this);
+      this.position.set(this.worldCenterPos.x, this.worldCenterPos.y - this.worldStartY);
     }
 
     this.checkEdges();
