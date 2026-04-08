@@ -14,7 +14,7 @@ class MatrixBiome extends Biome {
       50, // startOverlapHeight
       100, // startHeight
       100, // endHeight
-      0.2, // gravity
+      0.1, // gravity
       2, // maxVelocity
       ball
     );

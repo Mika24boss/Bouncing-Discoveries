@@ -6,7 +6,7 @@ class Manager {
   lerpSpeed = 0.1; // Adjust smoothing factor for camera movement
   currentBiome = null;
   idleRestartTime = 600; // Frames until auto-restart when idle
-  idleStartTime = 900; // Frames until auto-start from the title screen
+  idleStartTime = 600; // Frames until auto-start from the title screen
   idleFrames = 0;
 
   constructor() {
@@ -48,6 +48,9 @@ class Manager {
       if (this.currentBiome instanceof StartBiome) {
         fadeIn = false; // Don't fade in the start biome
         fadeOut &&= this.currentBiome.clawState === "DROPPING"; // Only fade out when the ball is falling
+      }
+      if (this.currentBiome instanceof SpaceBiome) {
+        fadeOut = false; // Don't fade out in the space biome since it's the end
       }
 
       if (fadeIn) {

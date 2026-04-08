@@ -1,5 +1,3 @@
-// Adapted from https://editor.p5js.org/brytlao/sketches/um2WVvzaN by brytlao
-
 class Fish {
   constructor(biomeHeight, cellSize, rows, cols) {
     this.segSizes = [10, 30, 27, 26, 26, 25, 24, 23, 22, 19, 15, 10, 8, 6, 4, 3];

@@ -16,8 +16,8 @@ function preload() {
   startMusic = loadSound("Assets/start.mp3");
   abstractMusic = loadSound("Assets/abstract.mp3");
   matrixMusic = loadSound("Assets/matrix.mp3");
-  // oceanMusic = loadSound("Assets/ocean.mp3");
-  // spaceMusic = loadSound("Assets/space.mp3");
+  oceanMusic = loadSound("Assets/ocean.mp3");
+  spaceMusic = loadSound("Assets/space.mp3");
 }
 
 function setup() {
