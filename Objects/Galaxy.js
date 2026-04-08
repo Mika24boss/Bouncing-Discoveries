@@ -1,13 +1,5 @@
 class Galaxy {
-  constructor(
-    spirals,
-    spacingMult,
-    starDensity,
-    showOrbits,
-    layerHeight,
-    biomeHeight,
-    cullPadding
-  ) {
+  constructor(spirals, spacingMult, starDensity, showOrbits, layerHeight, biomeHeight, cullPadding) {
     this.spirals = spirals;
     this.spacingMult = spacingMult;
     this.starDensity = starDensity;

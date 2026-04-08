@@ -22,6 +22,7 @@ function preload() {
 
 function setup() {
   colorMode(HSB);
+  noCursor();
   let canvasHeight = windowHeight;
   let canvasWidth = windowWidth;
   canvasWidth = min(canvasWidth, windowWidth);

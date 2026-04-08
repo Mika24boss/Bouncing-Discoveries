@@ -45,7 +45,7 @@ class SpaceBiome extends Biome {
   constructor(worldStartY, ball) {
     super(
       worldStartY,
-      7000, // biomeHeight
+      9000, // biomeHeight
       300, // startOverlapHeight
       600, // startHeight
       600, // endHeight
@@ -176,7 +176,7 @@ class SpaceBiome extends Biome {
     }
 
     this.layersBG[this.layersBG.length - 1].content.forEach((astStat) => astStat.update()); // We assume that static asteroids are always in the last layer :P
-    this.layersFG[0].content.forEach((astStat) => astStat.update()); 
+    this.layersFG[0].content.forEach((astStat) => astStat.update());
   }
 
   updateAsteroids(isBackground, asteroids, minAsteroidRadius) {
