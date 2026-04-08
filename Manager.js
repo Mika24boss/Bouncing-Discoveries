@@ -9,6 +9,10 @@ class Manager {
   idleStartTime = 600; // Frames until auto-start from the title screen
   idleFrames = 0;
 
+  blastRadius = 300;
+  blastStrength = 50;
+  nbSplotches = 10;
+
   constructor() {
     this.ball = new Ball(width / 2, height / 3);
 
@@ -29,6 +33,8 @@ class Manager {
     this.ball.setTotalWorldHeight(this.totalWorldHeight);
     this.currentBiome = this.biomes[0];
     this.currentMusic = null;
+
+    this.splotches = [];
   }
 
   updateMusic() {
@@ -103,6 +109,11 @@ class Manager {
     }
     if (Manager.state === "PLAYING" && this.idleFrames > this.idleRestartTime) this.restart();
     else if (Manager.state === "IDLE_TITLE" && this.idleFrames > this.idleStartTime) Manager.state = "ANIM_TITLE";
+
+    for (let i = this.splotches.length - 1; i >= 0; i--) {
+      this.splotches[i].update();
+      if (this.splotches[i].isDead()) this.splotches.splice(i, 1);
+    }
   }
 
   drawScene() {
@@ -120,6 +131,12 @@ class Manager {
       biome.drawForeground(this.cameraWorldY);
     }
 
+    push();
+    for (let splotch of this.splotches) {
+      splotch.draw(this.cameraWorldY);
+    }
+    pop();
+
     // Update camera
     let targetCameraY = this.ball.worldCenterPos.y - height / 3;
     if (targetCameraY < 0) targetCameraY = 0;
@@ -130,6 +147,26 @@ class Manager {
   pushBall(x, y) {
     this.ball.velocity.x = x;
     this.ball.velocity.y = y;
+  }
+
+  handleExplosion() {
+    let mouseWorldY = mouseY + this.cameraWorldY;
+    let dx = this.ball.worldCenterPos.x - mouseX;
+    let dy = this.ball.worldCenterPos.y - mouseWorldY;
+    let distSquared = dx * dx + dy * dy;
+
+    for (let i = 0; i < this.nbSplotches; i++) {
+      this.splotches.push(new Splotch(mouseX, mouseWorldY));
+    }
+
+    if (distSquared >= this.blastRadius * this.blastRadius || distSquared === 0) return;
+
+    let distance = sqrt(distSquared);
+    let power = map(distance, 0, this.blastRadius, this.blastStrength, 0);
+    let forceX = (dx / distance) * power;
+    let forceY = (dy / distance) * power;
+
+    this.ball.applyForce(forceX, forceY);
   }
 
   userInput(isStartButton = false, isPause = false) {

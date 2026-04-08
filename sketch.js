@@ -22,7 +22,6 @@ function preload() {
 
 function setup() {
   colorMode(HSB);
-  noCursor();
   let canvasHeight = windowHeight;
   let canvasWidth = windowWidth;
   canvasWidth = min(canvasWidth, windowWidth);
@@ -74,6 +73,9 @@ function keyPressed() {
 
 function mouseClicked() {
   manager?.userInput(true);
+  if (Manager.state !== "PLAYING") return;
+  
+  manager.handleExplosion();
 }
 
 function handleGamepad() {
