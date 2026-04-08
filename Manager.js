@@ -10,6 +10,7 @@ class Manager {
   idleFrames = 0;
 
   blastRadius = 300;
+  blastParticleRadius = 150;
   blastStrength = 50;
   nbSplotches = 10;
 
@@ -155,10 +156,28 @@ class Manager {
     let dy = this.ball.worldCenterPos.y - mouseWorldY;
     let distSquared = dx * dx + dy * dy;
 
+    // Create visual splotches at mouse click
     for (let i = 0; i < this.nbSplotches; i++) {
       this.splotches.push(new Splotch(mouseX, mouseWorldY));
     }
 
+    // Apply forces to particles within the blast radius
+    let oceanBiome = this.biomes[3]; // I know the ocean biome is the 4th one, don't crucify me please
+    if (mouseWorldY > oceanBiome.worldStartY && mouseWorldY < oceanBiome.worldStartY + oceanBiome.biomeHeight) {
+      for (let p of oceanBiome.particles) {
+        let pdx = p.position.x - mouseX;
+        let pdy = p.position.y + oceanBiome.worldStartY - mouseWorldY;
+        let pDistSq = pdx * pdx + pdy * pdy;
+
+        if (pDistSq >= this.blastParticleRadius * this.blastParticleRadius || pDistSq === 0) continue;
+
+        let pDist = sqrt(pDistSq);
+        let pPower = map(pDist, 0, this.blastParticleRadius, this.blastStrength, 0);
+        p.applyExplosionForce((pdx / pDist) * pPower, (pdy / pDist) * pPower, 1 - pDist / this.blastParticleRadius);
+      }
+    }
+
+    // Apply blast force to the ball if within the blast radius
     if (distSquared >= this.blastRadius * this.blastRadius || distSquared === 0) return;
 
     let distance = sqrt(distSquared);

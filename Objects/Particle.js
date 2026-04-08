@@ -1,6 +1,5 @@
 class Particle {
   MAX_VELOCITY_DEFAULT = 2;
-  MAX_VELOCITY_DEVIATION = 5;
   maxVelocity = this.MAX_VELOCITY_DEFAULT;
   velocity = createVector(0, 0);
   acceleration = createVector(0, 0); // Reusable vector to avoid creating new ones in the update function
@@ -17,7 +16,6 @@ class Particle {
   energy = 0;
   radius = 10;
   previousPosition;
-  forceToBall = createVector(0, 0); // Reusable vector to avoid creating new ones in the deviation force calculation
 
   constructor(biomeHeight, cellSize, rows, cols, worldStartY, ballRadius) {
     this.biomeHeight = biomeHeight;
@@ -109,5 +107,11 @@ class Particle {
     ) {
       this.reset();
     }
+  }
+
+  applyExplosionForce(fx, fy, boostRatio) {
+    this.velocity.x += fx;
+    this.velocity.y += fy;
+    this.energy = min(this.maxEnergy, this.energy + this.maxEnergy * boostRatio);
   }
 }
