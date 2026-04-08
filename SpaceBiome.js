@@ -10,7 +10,7 @@ class SpaceBiome extends Biome {
   cullPadding = 5; // Extra padding for culling stars outside the screen (without padding, some partially visible stars at the edges can be culled)
   galaxyParallaxScale = 1; // Parallax scale for the galaxy layer
   nebulaeParallaxScale = 0.5; // Parallax scale for the nebulae layer
-  numNebulae = 30; // Number of nebulae in the background
+  numNebulae = 35; // Number of nebulae in the background
   earthEmoji = ""; // Emoji to represent Earth in the biome
   earthEmojis = ["🌍", "🌎", "🌏"];
 
@@ -368,5 +368,10 @@ class SpaceBiome extends Biome {
     }
 
     return newAsteroids;
+  }
+
+  reset() {
+    this.asteroidsBG = [];
+    this.asteroidsFG = [];
   }
 }

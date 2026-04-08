@@ -97,11 +97,7 @@ class Manager {
 
     this.updateMusic();
 
-    if (
-      this.ball.velocity.magSq() < 0.1 &&
-      Manager.state === "PLAYING" &&
-      this.ball.worldCenterPos.y + this.ball.radius > this.totalWorldHeight - 1
-    ) {
+    if (this.ball.velocity.magSq() < 0.1 && Manager.state === "PLAYING") {
       this.idleFrames++;
     } else if (Manager.state === "IDLE_TITLE") {
       this.idleFrames++;
