@@ -11,7 +11,7 @@ let spaceMusic;
 let rawTextCode;
 
 function preload() {
-  rawTextCode = loadStrings("Biomes/MatrixBiome.js");
+  rawTextCode = loadStrings("MatrixBiome.js");
   StartBiome.titleFont = loadFont("Assets/Bungee-Regular.ttf");
   startMusic = loadSound("Assets/start.mp3");
   abstractMusic = loadSound("Assets/abstract.mp3");
