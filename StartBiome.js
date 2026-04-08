@@ -2,7 +2,8 @@ class StartBiome extends Biome {
   titleFont = null;
 
   title = "BOUNCING DISCOVERIES";
-  fontSize = 48;
+  fontSize = 60;
+  promptSize = 32;
   ballPool = [];
 
   constructor(worldStartY, ball) {
@@ -234,15 +235,15 @@ class StartBiome extends Biome {
     let finalAlpha = alphaPrompt * pulse;
 
     textFont(StartBiome.titleFont);
-    textSize(22);
+    textSize(this.promptSize);
 
     let txt1 = "PRESS  ";
     let txt2 = "ANY BUTTON/KEY";
     let txt3 = "  TO START";
 
     let w1 = textWidth(txt1);
-    let w2 = textWidth(txt2) + 35; // Add padding for the rectangle
-    let rectHeight = 40;
+    let w2 = textWidth(txt2) * 1.15; // Add padding for the rectangle
+    let rectHeight = this.promptSize * 1.9;
     let w3 = textWidth(txt3);
     let totalW = w1 + w2 + w3;
     let startX = (width - totalW) / 2;

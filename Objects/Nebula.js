@@ -8,7 +8,7 @@ class Nebula {
     let p5Color = color(h, s, b, 0.25);
 
     this.centerX = random(width);
-    this.centerY = random(startHeight, layerHeight - startHeight - endHeight);
+    this.centerY = random(startHeight, layerHeight - (startHeight + endHeight) * 0.5);
     this.radius = random(0.35 * width, 0.75 * width);
     this.color = p5Color.toString();
   }
