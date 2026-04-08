@@ -9,7 +9,7 @@ class AbstractBiome extends Biome {
       minHH: 10,
       maxHH: 20,
       minSizeScaleAt1080p: 0.75,
-      density: 0.1,
+      density: 0.02,
     }),
     new DecorativeRectStyle({
       parallaxScale: 0.6,
@@ -20,7 +20,7 @@ class AbstractBiome extends Biome {
       minHH: 30,
       maxHH: 50,
       minSizeScaleAt1080p: 0.75,
-      density: 0.05,
+      density: 0.01,
     }),
     new DecorativeRectStyle({
       parallaxScale: 0.8,
@@ -31,7 +31,7 @@ class AbstractBiome extends Biome {
       minHH: 20,
       maxHH: 30,
       minSizeScaleAt1080p: 0.75,
-      density: 0.1,
+      density: 0.02,
     }),
     new DecorativeRectStyle({
       parallaxScale: 2,
@@ -42,7 +42,7 @@ class AbstractBiome extends Biome {
       minHH: 50,
       maxHH: 150,
       minSizeScaleAt1080p: 0.75,
-      density: 0.05,
+      density: 0.01,
     }),
   ];
 
@@ -54,7 +54,7 @@ class AbstractBiome extends Biome {
       minHH: 40,
       maxHH: 80,
       minSizeScaleAt1080p: 0.75,
-      density: 0.04,
+      density: 0.008,
     }),
   ];
 
@@ -140,7 +140,7 @@ class AbstractBiome extends Biome {
       let scale = style.parallaxScale;
       let parallaxLayer = new ParallaxLayer(scale, this.biomeHeight);
 
-      let numberOfShapes = width * height * style.density / 1000;
+      let numberOfShapes = width * this.biomeHeight * style.density / 1000;
       for (let i = 0; i < numberOfShapes; i++) {
         let newShape = new DecorativeRectangle(this.biomeHeight, parallaxLayer.layerHeight, style);
         parallaxLayer.content.push(newShape);
@@ -150,7 +150,7 @@ class AbstractBiome extends Biome {
     }
 
     for (let style of this.interactiveStyles) {
-      let numberOfShapes = width * height * style.density / 1000;
+      let numberOfShapes = width * this.biomeHeight * style.density / 1000;
       for (let i = 0; i < numberOfShapes; i++) {
         let newShape = new InteractiveRectangle(this.biomeHeight, this.worldStartY, style);
         this.interactiveShapes.push(newShape);
